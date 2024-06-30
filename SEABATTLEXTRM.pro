@@ -10,19 +10,28 @@ CONFIG += c++17
 
 SOURCES += \
     board.cpp \
+    draggablebutton.cpp \
+    gamewindow.cpp \
     main.cpp \
-    mainwindow.cpp \
-    ship.cpp
+    releasablelabel.cpp \
+    ship.cpp \
+    thememanager.cpp
 
 HEADERS += \
     board.h \
-    mainwindow.h \
-    ship.h
+    draggablebutton.h \
+    gamewindow.h \
+    releasablelabel.h \
+    ship.h \
+    thememanager.h
 
 FORMS += \
-    mainwindow.ui
+    gamewindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    icons.qrc

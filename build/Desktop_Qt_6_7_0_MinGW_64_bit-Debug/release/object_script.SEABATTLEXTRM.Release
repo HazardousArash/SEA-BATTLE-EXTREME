@@ -1,0 +1,11 @@
+release/board.o
+release/draggablebutton.o
+release/gamewindow.o
+release/main.o
+release/releasablelabel.o
+release/ship.o
+release/thememanager.o
+release/qrc_icons.o
+release/moc_draggablebutton.o
+release/moc_gamewindow.o
+release/moc_releasablelabel.o

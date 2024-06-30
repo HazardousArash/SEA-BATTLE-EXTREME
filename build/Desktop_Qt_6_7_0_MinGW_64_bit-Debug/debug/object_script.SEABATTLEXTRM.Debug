@@ -1,0 +1,11 @@
+debug/board.o
+debug/draggablebutton.o
+debug/gamewindow.o
+debug/main.o
+debug/releasablelabel.o
+debug/ship.o
+debug/thememanager.o
+debug/qrc_icons.o
+debug/moc_draggablebutton.o
+debug/moc_gamewindow.o
+debug/moc_releasablelabel.o

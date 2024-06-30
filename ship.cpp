@@ -1,20 +1,27 @@
-#include "ship.h"
+#include "Ship.h"
 
-//static members...
-int Ship::countOfShips=0;
-int Ship::nextID=1;
-std::map<int,Ship> Ship::shipMap;
-Ship::Ship(int length, bool isFlipped) : length(length), isFlipped(isFlipped)
-{
-    ID=nextID++;
+int Ship::countOfShips = 0;
+int Ship::nextID = 1;
+std::map<int, Ship*> Ship::shipMap;
+
+Ship::Ship() : ID(0), length(0), isFlipped(true), isSunken(false) {}
+
+Ship::Ship(int length, bool isFlipped, bool isSunken)
+    : length(length), isFlipped(isFlipped), isSunken(isSunken) {
+    ID = nextID++;
     countOfShips++;
-    shipMap[ID] = *this;
+    shipMap[ID] = this;
 }
-Ship::~Ship()
-{
+
+Ship::~Ship() {
     countOfShips--;
     shipMap.erase(ID);
 }
+
+std::map<int, Ship*> Ship::getAllShips() {
+    return shipMap;
+}
+
 // creating a fleet...
 void Ship::createFleet()
 {
@@ -52,9 +59,16 @@ bool Ship::getIsFlipped() const
 {
     return isFlipped;
 }
-Ship Ship::getShipByID() const
+Ship* Ship::getShipByID(int id) {
+    auto it = shipMap.find(id);
+    if (it != shipMap.end()) {
+        return it->second; // Return the pointer
+    }
+    return nullptr; // Handle case if ID is not found
+}
+bool Ship::getIsSunken()const
 {
-    return shipMap.at(id);
+    return isSunken;
 }
 //setters...
 void Ship::setLength(int length)
@@ -64,6 +78,10 @@ void Ship::setLength(int length)
 void Ship::setIsFlipped(bool isFlipped)
 {
     this->isFlipped = isFlipped;
+}
+void Ship::setIsSunken(bool isSunken)
+{
+    this->isSunken= isSunken;
 }
 //methods...
 void Ship::rotate()

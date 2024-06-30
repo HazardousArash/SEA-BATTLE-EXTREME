@@ -1,33 +1,47 @@
 #ifndef SHIP_H
 #define SHIP_H
+
 #include <vector>
 #include <map>
+#include <memory>
 
-class Ship
-{
-private:
-    static int countOfShips;
-    static int ID;
-    static std::map(int, Ship> shipMap;
-    int ID;
-    int length;
-    bool isFlipped;
-
+class Ship {
 public:
-    Ship(int length, bool isFlipped = false);
+    Ship();
+    Ship(int length, bool isFlipped = true, bool isSunken = false);
+    ~Ship();
+
+    bool isValid() const;
+
+    // Static methods
+    static std::map<int, Ship*> getAllShips();
     static void createFleet();
-    //getters
+    static Ship* getShipByID(int id);
+    static int getCountOfShips();
+
+    // Getters
     int getID() const;
     int getLength() const;
     bool getIsFlipped() const;
-    static Ship getShipByID(int id);
-    //setters
+    bool getIsSunken() const;
+
+    // Setters
     void setLength(int length);
     void setIsFlipped(bool isFlipped);
-    //methods
+    void setIsSunken(bool isSunken);
+
+    // Methods
     void rotate();
-    static int getCountOfShips();
-    ~Ship();
+
+private:
+    static int countOfShips;
+    static int nextID;
+    static std::map<int, Ship*> shipMap;
+
+    int ID;
+    int length;
+    bool isFlipped;
+    bool isSunken;
 };
 
 #endif // SHIP_H
