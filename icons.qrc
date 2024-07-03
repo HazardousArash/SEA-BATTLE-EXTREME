@@ -19,5 +19,6 @@
         <file>themes/theme1/smallShip.png</file>
         <file>themes/theme1/tinyShip.png</file>
         <file>themes/theme1/midShip.png</file>
+        <file>themes/theme1/paperGridEnemy.png</file>
     </qresource>
 </RCC>

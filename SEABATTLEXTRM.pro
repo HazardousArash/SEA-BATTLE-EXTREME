@@ -1,5 +1,7 @@
 QT       += core gui
 
+
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
@@ -13,6 +15,7 @@ SOURCES += \
     draggablebutton.cpp \
     gamewindow.cpp \
     main.cpp \
+    playingwindow.cpp \
     releasablelabel.cpp \
     ship.cpp \
     thememanager.cpp
@@ -21,12 +24,14 @@ HEADERS += \
     board.h \
     draggablebutton.h \
     gamewindow.h \
+    playingwindow.h \
     releasablelabel.h \
     ship.h \
     thememanager.h
 
 FORMS += \
-    gamewindow.ui
+    gamewindow.ui \
+    playingwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -35,3 +40,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     icons.qrc
+

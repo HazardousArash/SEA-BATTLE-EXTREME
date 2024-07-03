@@ -10,25 +10,85 @@
 #include <vector>
 #include "releasablelabel.h"
 #include <qdebug.h>
+#include <QTimer>
 int initialX = 50;
 int initialY = 50;
+#include "GameWindow.h"
+#include "ui_GameWindow.h"
+#include "PlayingWindow.h"
+
+#include "GameWindow.h"
+#include "ui_GameWindow.h"
+#include <QDebug>
 
 GameWindow::GameWindow(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::GameWindow),
-    themeManager(),
-    isDraggingShip(false)
-{
-    ui->setupUi(this);
-     initializeFleet();
-    setupGridBackground();
-    setupIcons();
-    setupTable();
+    playingWindow(nullptr) { // Initialize PlayingWindow to nullptr
 
+    qDebug() << "GameWindow constructor started";
+
+    ui->setupUi(this);
+    qDebug() << "UI setup completed";
+
+    initializeFleet();
+    qDebug() << "Fleet initialized";
+
+    setupGridBackground();
+    qDebug() << "Grid background setup completed";
+
+    setupIcons();
+    qDebug() << "Icons setup completed";
+
+    setupTable();
+    qDebug() << "Table setup completed";
+
+    connect(ui->nextButton, &QPushButton::clicked, this, &GameWindow::onNextButtonClicked);
+    qDebug() << "Next button connected";
 }
 
 GameWindow::~GameWindow() {
+    qDebug() << "GameWindow destructor started";
+
     delete ui;
+    qDebug() << "UI deleted";
+
+    delete playingWindow; // Clean up PlayingWindow
+    qDebug() << "PlayingWindow deleted";
+}
+
+void GameWindow::onNextButtonClicked() {
+    qDebug() << "Next button clicked";
+
+    if (!playingWindow) {
+        qDebug() << "Creating PlayingWindow instance";
+        playingWindow = new PlayingWindow(this, &board, &themeManager);
+    }
+
+    this->hide(); // Hide the current window
+    qDebug() << "GameWindow hidden";
+
+    playingWindow->setWindowFlags(Qt::Window); // Ensure it has window flags set correctly
+    playingWindow->setWindowModality(Qt::NonModal); // Ensure it is non-modal
+    playingWindow->show(); // Show the PlayingWindow
+    playingWindow->raise(); // Bring the PlayingWindow to the top
+    playingWindow->activateWindow(); // Focus the PlayingWindow
+    qDebug() << "PlayingWindow shown and activated";
+}
+
+
+void GameWindow::showPlayingWindow() {
+    if (playingWindow) {
+        qDebug() << "Attempting to show PlayingWindow.";
+        this->hide(); // Hide GameWindow
+        playingWindow->setWindowFlags(Qt::Window | Qt::MSWindowsOwnDC);
+        playingWindow->show();
+        playingWindow->raise(); // Ensure PlayingWindow is brought to the front
+        playingWindow->activateWindow(); // Ensure PlayingWindow gets focus
+        qDebug() << "PlayingWindow visibility:" << playingWindow->isVisible();
+    } else {
+        qDebug() << "PlayingWindow is not initialized.";
+    }
 }
 void GameWindow::contextMenuEvent(QContextMenuEvent* event) {
     Q_UNUSED(event);
@@ -56,7 +116,7 @@ void GameWindow::setupGridBackground() {
     for (int j = 0; j < gridSize; ++j) {  // Loop for rows
         for (int i = 0; i < gridSize; ++i) {  // Loop for columns
             ReleasableLabel* cell = new ReleasableLabel(ui->gridBackgroundLabel);
-            cell->setGeometry(static_cast<int>(-3 + i * cellSizeX), static_cast<int>(j * cellSizeY),
+            cell->setGeometry(static_cast<int>(-2+ i * cellSizeX), static_cast<int>(j * cellSizeY),
                               static_cast<int>(cellSizeX), static_cast<int>(cellSizeY));
             cell->setStyleSheet("border: 1px solid gray; background: transparent;");
             cell->setObjectName(QString("cell_%1_%2").arg(j).arg(i));  // Swapped i and j
@@ -67,7 +127,7 @@ void GameWindow::setupGridBackground() {
 
             connect(cell, &ReleasableLabel::mouseReleased, this, [this, j, i]() {  // Swapped i and j
                 qDebug() << "Clicked cell at coordinates:" << j << i;
-                placeShipOnBoard(j, i);
+
             });
         }
     }
@@ -82,24 +142,25 @@ void GameWindow::handleShipDrop(DraggableButton* button) {
     int gridSize = 10;
     int cellSizeX = 591 / gridSize;
     int cellSizeY = 591 / gridSize;
-    int x,y;
+    int x=0,y=0;
+    qDebug()<< "hey";
     switch (currentShip.getLength())
     {
     case 1:
-         x = qBound(0, pos.x() / cellSizeX, gridSize-1);
-         y = qBound(1, pos.y() / cellSizeY, gridSize - 1);
+         x = qBound(0, pos.x() / cellSizeX, gridSize);
+         y = qBound(0, pos.y() / cellSizeY, gridSize );
         break;
     case 2:
-         x = qBound(0, pos.x() / cellSizeX, gridSize - 1);
-         y = qBound(1, pos.y() / cellSizeY, gridSize - 1);
+         x = qBound(0, pos.x() / cellSizeX, gridSize );
+         y = qBound(0, pos.y() / cellSizeY, gridSize );
         break;
     case 3:
-         x = qBound(0, pos.x() / cellSizeX, gridSize - 1);
-         y = qBound(1, pos.y() / cellSizeY, gridSize - 1);
+         x = qBound(0, pos.x() / cellSizeX, gridSize );
+         y = qBound(0, pos.y() / cellSizeY, gridSize );
         break;
     case 4:
-         x = qBound(0, pos.x() / cellSizeX, gridSize - 1);
-         y = qBound(1, pos.y() / cellSizeY, gridSize - 1);
+         x = qBound(0, pos.x() / cellSizeX, gridSize );
+         y = qBound(0, pos.y() / cellSizeY, gridSize );
         break;
     }
 
@@ -109,19 +170,19 @@ void GameWindow::handleShipDrop(DraggableButton* button) {
     {
     case 1:  // Tiny ships
         moveX = 35;
-        moveY = 10;
+        moveY = 17.5;
         break;
     case 2:  // Small ships
-        moveX = 20;
-        moveY = 15;
+        moveX = 0;
+        moveY = 0;
         break;
     case 3:  // Mid ships
-        moveX = 15;
+        moveX = 0;
         moveY = 0;
         break;
     case 4:  // Large ships
-        moveX = 10;
-        moveY = 15;
+        moveX = 0;
+        moveY = 0;
         break;
     }
 
@@ -136,21 +197,50 @@ void GameWindow::handleShipDrop(DraggableButton* button) {
 
 
 void GameWindow::placeShipOnBoard(int startX, int startY) {
-    int length = currentShip.getLength();
-    bool isFlipped = currentShip.getIsFlipped();
+    int gridSize = 10;
+    float cellSizeX = 591.0f / gridSize;
+    float cellSizeY = 591.0f / gridSize;
 
-    int maxIndex = 11 - (isFlipped ? 1 : length);  // Increase max index by one
-    int adjustedX = qBound(0, startX - (isFlipped ? 0 : length - 1), maxIndex);
-    int adjustedY = qBound(0, startY - (isFlipped ? length - 1 : 0), maxIndex);
+    // Convert coordinates to grid indices
+    int gridX = (startX + 2) / cellSizeX;  // Adjusting based on setupGridBackground logic
+    int gridY = startY / cellSizeY;
 
-    if (board.placeShip(currentShip, adjustedX, adjustedY)) {
-        board.markAdjacentCellsUnavailable(adjustedX, adjustedY, length, isFlipped);
-        highlightAvailableBlocks();
+    if (isWithinGrid(gridX, gridY)) {
+        int length = currentShip.getLength();
+        bool isFlipped = currentShip.getIsFlipped();
+
+        int shipStartX = gridX;
+        int shipStartY = gridY;
+
+        if (isFlipped) {
+            shipStartY = gridY - length + 1;
+        } else {
+            shipStartX = gridX - length + 1;
+        }
+
+        // Ensure starting positions are within bounds
+        shipStartX = qBound(0, shipStartX, gridSize - 1);
+        shipStartY = qBound(0, shipStartY, gridSize - 1);
+
+        if (board.canPlaceShip(currentShip, shipStartX, shipStartY)) {
+            board.placeShip(currentShip, shipStartY, shipStartX);
+            board.markAdjacentCellsUnavailable(shipStartX, shipStartY, length, isFlipped);
+            qDebug() << "Ship placed successfully";
+            highlightAvailableBlocks();
+            resetBlockColors();
+        } else {
+            qDebug() << "Failed to place ship";
+        }
     } else {
-        qDebug() << "Failed to place ship at" << adjustedX << adjustedY;
+        qDebug() << "Position out of bounds";
     }
 }
 
+
+
+bool GameWindow::isWithinGrid(int x, int y) {
+    return x >= 0 && x < 10 && y >= 0 && y < 10;
+}
 
 
 
@@ -172,7 +262,7 @@ void GameWindow::initializeFleet() {
         DraggableButton* button = addDraggableButton("tinyShip", *tinyShip, 1085 + i * (25 + spacing), 67.5, 55, 30, 6.25);
         connect(button, &DraggableButton::shipDragged, this, &GameWindow::highlightAvailableBlocks);
         button->canDrag = true; // Allow dragging initially
-        button->setStyleSheet("border: 2px solid red;");
+        //button->setStyleSheet("border: 2px solid red;");
     }
 
     // Create small ships
@@ -182,7 +272,7 @@ void GameWindow::initializeFleet() {
         DraggableButton* button = addDraggableButton("smallShip", *smallShip, 1080 + i * (40 + spacing), 130, 128, 70, 30);
         connect(button, &DraggableButton::shipDragged, this, &GameWindow::highlightAvailableBlocks);
         button->canDrag = true; // Allow dragging initially
-        button->setStyleSheet("border: 2px solid red;");
+        //button->setStyleSheet("border: 2px solid red;");
     }
 
     // Create mid ships
@@ -192,7 +282,7 @@ void GameWindow::initializeFleet() {
         DraggableButton* button = addDraggableButton("midShip", *midShip, 1185 - i * (40 + spacing), 235, 256, 200, 75);
         connect(button, &DraggableButton::shipDragged, this, &GameWindow::highlightAvailableBlocks);
         button->canDrag = true; // Allow dragging initially
-        button->setStyleSheet("border: 2px solid red;");
+        //button->setStyleSheet("border: 2px solid red;");
     }
 
     // Create large ship
@@ -201,7 +291,7 @@ void GameWindow::initializeFleet() {
     DraggableButton* button = addDraggableButton("largeShip", *largeShip, 1180, 430, 220, 145, 8);
     connect(button, &DraggableButton::shipDragged, this, &GameWindow::highlightAvailableBlocks);
     button->canDrag = true; // Allow dragging initially
-    button->setStyleSheet("border: 2px solid red;");
+    //button->setStyleSheet("border: 2px solid red;");
 }
 
 
@@ -213,24 +303,31 @@ bool GameWindow::eventFilter(QObject* obj, QEvent* event) {
         QLabel* cell = qobject_cast<QLabel*>(obj);
         if (cell) {
             highlightAvailableBlocks();
-            int x = (cell->x() - 80) / (591 / 10);
-            int y = (cell->y() - 70) / (591 / 10);
 
-            bool canPlace = board.placeShip(currentShip, x, y);
-            if (canPlace) {
+            int cellSize = 591/10;
+            int x = (cell->x() - 80) / cellSize;
+            int y = (cell->y() - 70) / cellSize;
+            qDebug() << "cellX=" << cell->x();
+            qDebug() << "cellY=" << cell->y();
+
+            // Check if the ship can be placed without actually placing it
+            if (board.canPlaceShip(currentShip, x, y)) {
                 cell->setStyleSheet("background: green;");
             } else {
                 cell->setStyleSheet("background: red;");
             }
         }
-        return true;
+        return true;  // Event handled
     }
-    return QWidget::eventFilter(obj, event);
+    return false;  // Event not handled, pass it on
 }
+
+
 
 void GameWindow::setupIcons() {
     ui->backButton->setIcon(QIcon(themeManager.getIcon("back")));
     ui->nextButton->setIcon(QIcon(themeManager.getIcon("next")));
+    connect(ui->nextButton, &QPushButton::clicked, this, &GameWindow::showPlayingWindow);
 }
 
 void GameWindow::setupTable() {
@@ -278,7 +375,7 @@ void GameWindow::highlightAvailableBlocks() {
     int gridSize = 10;
 
     for (int i = 0; i < gridSize; ++i) {
-        for (int j = 0; j < gridSize; ++j) {
+        for (int j= 0; j < gridSize; ++j) {
             QLabel* cell = labelGrid[i][j];
 
             if (cell) {
@@ -318,4 +415,9 @@ void GameWindow::switchToTheme2() {
     setupIcons();
     setupTable();
 }
+
+
+
+
+
 

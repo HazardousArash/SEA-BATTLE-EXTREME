@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PlayingWindow</class>
+ <widget class="QWidget" name="PlayingWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1256</width>
+    <height>779</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QLabel" name="myBoard">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>70</y>
+     <width>410</width>
+     <height>410</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="enemyBoard">
+   <property name="geometry">
+    <rect>
+     <x>757</x>
+     <y>70</y>
+     <width>410</width>
+     <height>410</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="waterLabel">
+   <property name="geometry">
+    <rect>
+     <x>2</x>
+     <y>-1</y>
+     <width>1251</width>
+     <height>761</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <zorder>waterLabel</zorder>
+  <zorder>myBoard</zorder>
+  <zorder>enemyBoard</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
