@@ -134,6 +134,24 @@ font: 10pt &quot;Segoe UI&quot;;</string>
      <string>don't have an account?</string>
     </property>
    </widget>
+   <widget class="QCommandLinkButton" name="commandLinkButton">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>350</y>
+      <width>183</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);
+font: 10pt &quot;Segoe UI&quot;;
+</string>
+    </property>
+    <property name="text">
+     <string>forgot password?</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

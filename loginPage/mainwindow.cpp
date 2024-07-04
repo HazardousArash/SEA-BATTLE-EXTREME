@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "singu.h"
+#include "forgetpassword.h"
 #include <QSqlDatabase>
 #include <QDebug>
 #include <QSqlQuery>
@@ -25,6 +26,12 @@ void MainWindow::on_signupButt_clicked()
     this->close();
     newPage->show();
 }
+void MainWindow::on_commandLinkButton_clicked()
+{
+    forgetPassword *newPage=new forgetPassword();
+    this->close();
+    newPage->show();
+}
 QString hashPassword(const QString& password) {
     QByteArray passwordBytes = password.toUtf8();
     QByteArray hash = QCryptographicHash::hash(passwordBytes, QCryptographicHash::Sha256);
@@ -39,11 +46,12 @@ void MainWindow::on_loginButt_clicked()
     }
     else{
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-        db.setDatabaseName("G:\\oldDesktop\\programing\\newS\\UNI\\402-403-AP\\QTFiles\\loginPage\\newDB.db");
+        db.setDatabaseName("newDB.db");
         if (!db.open()) {
             qDebug() << "Error opening database: ";
+            return;
         }
-        qDebug()<<"success!";
+        qDebug()<<"dataBase opened successesfully!";
         qDebug()<<ui->userLine->text();
         qDebug()<<ui->passLine->text();
         QSqlQuery query;
@@ -60,7 +68,9 @@ void MainWindow::on_loginButt_clicked()
             qDebug() << "Invalid login credentials.";
              errorDialog->showMessage("Login failed!");
         }
-
     }
 }
+
+
+
 

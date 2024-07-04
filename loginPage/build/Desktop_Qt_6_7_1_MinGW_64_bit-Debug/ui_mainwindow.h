@@ -36,6 +36,7 @@ public:
     QLineEdit *userLine;
     QPushButton *loginButt;
     QCommandLinkButton *signupButt;
+    QCommandLinkButton *commandLinkButton;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -106,6 +107,12 @@ public:
         signupButt->setGeometry(QRect(140, 350, 221, 41));
         signupButt->setStyleSheet(QString::fromUtf8("background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);\n"
 "font: 10pt \"Segoe UI\";"));
+        commandLinkButton = new QCommandLinkButton(centralwidget);
+        commandLinkButton->setObjectName("commandLinkButton");
+        commandLinkButton->setGeometry(QRect(420, 350, 183, 41));
+        commandLinkButton->setStyleSheet(QString::fromUtf8("background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);\n"
+"font: 10pt \"Segoe UI\";\n"
+""));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
@@ -128,6 +135,7 @@ public:
         label_2->setText(QCoreApplication::translate("MainWindow", "PassWord:", nullptr));
         loginButt->setText(QCoreApplication::translate("MainWindow", "Login", nullptr));
         signupButt->setText(QCoreApplication::translate("MainWindow", "don't have an account?", nullptr));
+        commandLinkButton->setText(QCoreApplication::translate("MainWindow", "forgot password?", nullptr));
     } // retranslateUi
 
 };

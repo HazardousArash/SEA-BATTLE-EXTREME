@@ -38,6 +38,8 @@ public:
     QLineEdit *lastNLine;
     QLabel *label_4;
     QLineEdit *gmailLine;
+    QLabel *label_5;
+    QLineEdit *SkeyLine;
     QPushButton *pushButton;
     QPushButton *pushButton_2;
     QMenuBar *menubar;
@@ -54,7 +56,7 @@ public:
         centralwidget->setObjectName("centralwidget");
         formLayoutWidget = new QWidget(centralwidget);
         formLayoutWidget->setObjectName("formLayoutWidget");
-        formLayoutWidget->setGeometry(QRect(260, 110, 281, 231));
+        formLayoutWidget->setGeometry(QRect(260, 110, 281, 281));
         formLayout = new QFormLayout(formLayoutWidget);
         formLayout->setObjectName("formLayout");
         formLayout->setContentsMargins(0, 0, 0, 0);
@@ -125,9 +127,19 @@ public:
 
         formLayout->setWidget(4, QFormLayout::FieldRole, gmailLine);
 
+        label_5 = new QLabel(formLayoutWidget);
+        label_5->setObjectName("label_5");
+
+        formLayout->setWidget(5, QFormLayout::LabelRole, label_5);
+
+        SkeyLine = new QLineEdit(formLayoutWidget);
+        SkeyLine->setObjectName("SkeyLine");
+
+        formLayout->setWidget(5, QFormLayout::FieldRole, SkeyLine);
+
         pushButton = new QPushButton(centralwidget);
         pushButton->setObjectName("pushButton");
-        pushButton->setGeometry(QRect(320, 350, 161, 61));
+        pushButton->setGeometry(QRect(320, 400, 161, 61));
         pushButton->setStyleSheet(QString::fromUtf8("color:rgb(255, 0, 0) ;\n"
 "font: italic 14pt \"Segoe UI\";"));
         pushButton_2 = new QPushButton(centralwidget);
@@ -157,6 +169,7 @@ public:
         label_3->setText(QCoreApplication::translate("singU", "firstName:", nullptr));
         label_6->setText(QCoreApplication::translate("singU", "lastName:", nullptr));
         label_4->setText(QCoreApplication::translate("singU", "gmail:", nullptr));
+        label_5->setText(QCoreApplication::translate("singU", "security Key", nullptr));
         pushButton->setText(QCoreApplication::translate("singU", "sign Up", nullptr));
         pushButton_2->setText(QCoreApplication::translate("singU", "Back to Login", nullptr));
     } // retranslateUi

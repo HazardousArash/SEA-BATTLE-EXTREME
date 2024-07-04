@@ -53,7 +53,11 @@ bool isValidRegexPassword(string input)
     regex pattern("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()\\-=+])(?!.*([a-zA-Z\\d])\\1{3})\\S{6,20}\\s*$");
     return regex_match(input, pattern);
 }
-
+bool isValidRegexSecurityKey(string input)
+{
+    regex pattern("^[A-Za-z0-9]+$");
+    return regex_match(input, pattern);
+}
 
 void singU::on_pushButton_clicked()
 {
@@ -64,7 +68,7 @@ void singU::on_pushButton_clicked()
         qDebug() << "Error opening database: ";
         return;
     }
-    if(ui->firstNLine==NULL||ui->lastNLine==NULL||ui->gmailLine==NULL||ui->userLine==NULL||ui->passLine==NULL){
+    if(ui->firstNLine==NULL||ui->lastNLine==NULL||ui->gmailLine==NULL||ui->userLine==NULL||ui->passLine==NULL||ui->SkeyLine==NULL){
         qDebug()<<"Please give us all the detail!";
          errorDialog->showMessage("Please fill everything");
     }
@@ -97,16 +101,23 @@ void singU::on_pushButton_clicked()
             errorDialog->showMessage("invalid Email, Try again please");
             return ;
         }
+        if(!isValidRegexSecurityKey(ui->SkeyLine->text().toStdString())){
+            errorDialog->showMessage("invalid security Key, Try again please");
+            return ;
+        }
 
-        insertQuery.prepare("INSERT INTO users (username, password,firstName,lastName,email,points,rank,theme1,theme2,theme3,ach1,ach2,ach3) VALUES (:username,:password,:firstName,:lastName,:email,:points,:rank,:theme1,:theme2,:theme3,:ach1,:ach2,:ach3)");
+        insertQuery.prepare("INSERT INTO users (username, password,firstName,lastName,email,securityKey,points,rank,theme1,theme2,theme3,ach1,ach2,ach3) VALUES (:username,:password,:firstName,:lastName,:email,:securityKey,:points,:rank,:theme1,:theme2,:theme3,:ach1,:ach2,:ach3)");
         QString userPass=ui->passLine->text();
         userPass=hashPasswordAgain(userPass);
+        QString securityKeyHash=ui->SkeyLine->text();
+        securityKeyHash=hashPasswordAgain(securityKeyHash);
 
         insertQuery.bindValue(":username", ui->userLine->text());
         insertQuery.bindValue(":password", userPass);
         insertQuery.bindValue(":firstName",ui->firstNLine->text());
         insertQuery.bindValue(":lastName",ui->lastNLine->text());
         insertQuery.bindValue(":email",ui->gmailLine->text());
+        insertQuery.bindValue(":securityKey",securityKeyHash);
         insertQuery.bindValue(":points",0);
         insertQuery.bindValue(":rank",1);
         insertQuery.bindValue(":theme1",0);
@@ -127,7 +138,6 @@ errorDialog->showMessage("Sign up was successful");
     }
 
 }
-
 
 void singU::on_pushButton_2_clicked()
 {
