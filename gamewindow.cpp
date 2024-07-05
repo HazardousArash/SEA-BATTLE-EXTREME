@@ -51,7 +51,8 @@ void GameWindow::onNextButtonClicked() {
 
     if (!playingWindow) {
         qDebug() << "Creating PlayingWindow instance";
-        playingWindow = new PlayingWindow(this, &board, &themeManager);
+        // Pass the current state of the board to the PlayingWindow
+        playingWindow = new PlayingWindow(this, this, &board, nullptr, &themeManager);
     }
 
     this->hide(); // Hide the current window
@@ -64,6 +65,7 @@ void GameWindow::onNextButtonClicked() {
     playingWindow->activateWindow(); // Focus the PlayingWindow
     qDebug() << "PlayingWindow shown and activated";
 }
+
 
 
 void GameWindow::showPlayingWindow() {

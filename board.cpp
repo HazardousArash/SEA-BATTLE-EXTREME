@@ -4,11 +4,14 @@
 #include <qrandom.h>
 const int rows=10;
 const int cols=10;
-Board::Board(int size) : size(size)
-{
+Board::Board(int size) : size(size) {
     grid.resize(size, std::vector<int>(size, 0));
 }
- std::vector<std::vector<int>>& Board::getGrid()  {
+
+Board::Board(const Board& other) : size(other.size), grid(other.grid) { // Copy constructor
+}
+
+std::vector<std::vector<int>>& Board::getGrid() {
     return grid;  // Return the grid
 }
 

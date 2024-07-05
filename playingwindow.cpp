@@ -12,33 +12,13 @@
 #include <QShowEvent>
 #include <QContextMenuEvent>
 #include <QMenu>
-PlayingWindow::PlayingWindow(QWidget *parent, Board* board, ThemeManager* themeManager)
-    : QWidget(parent),
-    ui(new Ui::PlayingWindow),
-    board(board),
-    themeManager(themeManager) {
 
-    qDebug() << "PlayingWindow constructor started";
-
-    ui->setupUi(this);
-    qDebug() << "UI setup completed";
-
-    setupGridBackground(); // Call setupGridBackground in the constructor
-    qDebug() << "Grid background setup completed";
-    setupGifBackground();
-    if (board) {
-        qDebug() << "Board size:" << board->getGrid().size();
-        // Additional setup using the board can go here
-    }
-
-    qDebug() << "PlayingWindow initialized";
-}
 PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myBoard, Board* enemyBoard, ThemeManager* themeManager)
     : QWidget(parent),
     ui(new Ui::PlayingWindow),
     gameWindow(gameWindow),
-    myBoard(myBoard),
-    enemyBoard(enemyBoard),
+    myBoard(new Board(*myBoard)),  // Make a deep copy of the myBoard
+    enemyBoard(enemyBoard ? new Board(*enemyBoard) : nullptr),  // Make a deep copy of the enemyBoard if not nullptr
     themeManager(themeManager) {
     qDebug() << "PlayingWindow constructor started";
 
@@ -51,15 +31,17 @@ PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myB
     setupGridBackground(); // Call setupGridBackground for both boards
     qDebug() << "Grid background setup completed";
 
-    updateGridWithBoardState(myBoard, "myBoard"); // Update the grid with the current board state
-    updateGridWithBoardState(enemyBoard, "enemyBoard"); // Update the enemy grid with the current board state
-
-    if (myBoard) {
-        qDebug() << "My Board size:" << myBoard->getGrid().size();
+    updateGridWithBoardState(this->myBoard, "myBoard"); // Update the grid with the current board state
+    if (this->enemyBoard) {
+        updateGridWithBoardState(this->enemyBoard, "enemyBoard"); // Update the enemy grid with the current board state
     }
 
-    if (enemyBoard) {
-        qDebug() << "Enemy Board size:" << enemyBoard->getGrid().size();
+    if (this->myBoard) {
+        qDebug() << "My Board size:" << this->myBoard->getGrid().size();
+    }
+
+    if (this->enemyBoard) {
+        qDebug() << "Enemy Board size:" << this->enemyBoard->getGrid().size();
     }
 
     qDebug() << "PlayingWindow initialized";
@@ -68,6 +50,8 @@ PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myB
 PlayingWindow::~PlayingWindow() {
     qDebug() << "PlayingWindow destructor started";
     delete ui;
+    delete myBoard;
+    delete enemyBoard;
     qDebug() << "UI deleted";
 }
 

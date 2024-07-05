@@ -2,48 +2,41 @@
 #define PLAYINGWINDOW_H
 
 #include <QWidget>
-#include <QPixmap>
-#include <QPoint>
-#include <vector>
-
-class Board;
-class ThemeManager;
-class ClickableLabel;
+#include "Board.h"
+#include "ThemeManager.h"
+#include "ClickableLabel.h"
+#include "GameWindow.h"
 class GameWindow;
-
 namespace Ui {
 class PlayingWindow;
 }
 
-class PlayingWindow : public QWidget
-{
+class PlayingWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myBoard, Board* enemyBoard, ThemeManager* themeManager);
     PlayingWindow(QWidget *parent, Board* board, ThemeManager* themeManager);
-
+    explicit PlayingWindow(QWidget *parent = nullptr, GameWindow *gameWindow = nullptr, Board* myBoard = nullptr, Board* enemyBoard = nullptr, ThemeManager* themeManager = nullptr);
     ~PlayingWindow();
 
-    void updateGridWithBoardState(Board* board, const QString& boardName);
+protected:
+    void showEvent(QShowEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent* event) override;
+
+private:
+    Ui::PlayingWindow *ui;
+    GameWindow *gameWindow;
     Board* myBoard;
     Board* enemyBoard;
-    Board *board;
-private:
-    void setupGifBackground();
-    void setupGridBackground();
-
-    Ui::PlayingWindow *ui;
-    GameWindow* gameWindow;
-
     ThemeManager* themeManager;
+
+    void setupGridBackground();
+    void setupGifBackground();
+    void updateGridWithBoardState(Board* board, const QString& boardName);
 
 private slots:
     void onBoardBlockClicked(int row, int col);
     void onEnemyBoardBlockClicked(int row, int col);
-    void contextMenuEvent(QContextMenuEvent* event);
-protected:
-    void showEvent(QShowEvent *event) override;
 };
 
 #endif // PLAYINGWINDOW_H
