@@ -10,6 +10,8 @@
 #include <QGridLayout>
 #include <QVBoxLayout>
 #include <QShowEvent>
+#include <QContextMenuEvent>
+#include <QMenu>
 PlayingWindow::PlayingWindow(QWidget *parent, Board* board, ThemeManager* themeManager)
     : QWidget(parent),
     ui(new Ui::PlayingWindow),
@@ -23,7 +25,7 @@ PlayingWindow::PlayingWindow(QWidget *parent, Board* board, ThemeManager* themeM
 
     setupGridBackground(); // Call setupGridBackground in the constructor
     qDebug() << "Grid background setup completed";
-
+    setupGifBackground();
     if (board) {
         qDebug() << "Board size:" << board->getGrid().size();
         // Additional setup using the board can go here
@@ -139,7 +141,7 @@ void PlayingWindow::setupGridBackground() {
                 cell1->setStyleSheet("border: 1px solid gray; background: transparent;");
                 cell1->setObjectName(QString("cell_%1_%2").arg(j).arg(i));
                 cell1->setRowCol(j, i);
-                connect(cell1, &ClickableLabel::clicked, this, &PlayingWindow::onBoardBlockClicked);
+                connect(cell1, &ClickableLabel::leftClicked, this, &PlayingWindow::onBoardBlockClicked);
                 gridLayout1->addWidget(cell1, j, i); // Add the label to the grid layout
                 qDebug() << "Added cell to myBoard:" << QString("cell_%1_%2").arg(j).arg(i);
             }
@@ -163,7 +165,7 @@ void PlayingWindow::setupGridBackground() {
                 cell2->setStyleSheet("border: 1px solid gray; background: transparent;");
                 cell2->setObjectName(QString("cell_enemy_%1_%2").arg(j).arg(i));
                 cell2->setRowCol(j, i);
-                connect(cell2, &ClickableLabel::clicked, this, &PlayingWindow::onEnemyBoardBlockClicked);
+                connect(cell2, &ClickableLabel::leftClicked, this, &PlayingWindow::onEnemyBoardBlockClicked);
                 gridLayout2->addWidget(cell2, j, i); // Add the label to the grid layout
                 qDebug() << "Added cell to enemyBoard:" << QString("cell_enemy_%1_%2").arg(j).arg(i);
             }
@@ -250,14 +252,57 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
 }
 
 void PlayingWindow::onBoardBlockClicked(int row, int col) {
-    qDebug() << "Clicked on myBoard at (" << row << ", " << col << ")";
+    qDebug() << "Left-clicked on myBoard at (" << row << ", " << col << ")";
 }
 
 void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
-    qDebug() << "Clicked on enemyBoard at (" << row << ", " << col << ")";
+    qDebug() << "Left-clicked on enemyBoard at (" << row << ", " << col << ")";
 }
+
 
 void PlayingWindow::showEvent(QShowEvent *event) {
     QWidget::showEvent(event);
     qDebug() << "PlayingWindow shown.";
 }
+
+void PlayingWindow::contextMenuEvent(QContextMenuEvent* event) {
+    QMenu contextMenu(this);
+
+    QAction* action1 = new QAction("Show myBoard Grid", this);
+    connect(action1, &QAction::triggered, this, [this]() {
+        if (myBoard) {
+            qDebug() << "myBoard state:";
+            for (const auto& row : myBoard->getGrid()) {
+                QString rowString;
+                for (int cell : row) {
+                    rowString += QString::number(cell) + " ";
+                }
+                qDebug() << rowString;
+            }
+        } else {
+            qDebug() << "myBoard is not initialized!";
+        }
+    });
+
+    QAction* action2 = new QAction("Show enemyBoard Grid", this);
+    connect(action2, &QAction::triggered, this, [this]() {
+        if (enemyBoard) {
+            qDebug() << "enemyBoard state:";
+            for (const auto& row : enemyBoard->getGrid()) {
+                QString rowString;
+                for (int cell : row) {
+                    rowString += QString::number(cell) + " ";
+                }
+                qDebug() << rowString;
+            }
+        } else {
+            qDebug() << "enemyBoard is not initialized!";
+        }
+    });
+
+    contextMenu.addAction(action1);
+    contextMenu.addAction(action2);
+
+    contextMenu.exec(event->globalPos());
+}
+

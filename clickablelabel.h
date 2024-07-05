@@ -13,7 +13,7 @@ public:
     ~ClickableLabel();
 
 signals:
-    void clicked(int row, int col);
+    void leftClicked(int row, int col);
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;

@@ -22,6 +22,7 @@ class PlayingWindow : public QWidget
 public:
     explicit PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myBoard, Board* enemyBoard, ThemeManager* themeManager);
     PlayingWindow(QWidget *parent, Board* board, ThemeManager* themeManager);
+
     ~PlayingWindow();
 
     void updateGridWithBoardState(Board* board, const QString& boardName);
@@ -40,7 +41,7 @@ private:
 private slots:
     void onBoardBlockClicked(int row, int col);
     void onEnemyBoardBlockClicked(int row, int col);
-
+    void contextMenuEvent(QContextMenuEvent* event);
 protected:
     void showEvent(QShowEvent *event) override;
 };
