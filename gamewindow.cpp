@@ -11,10 +11,10 @@
 #include "releasablelabel.h"
 #include <QDebug>
 #include <QTimer>
-
+#include <set>
 int initialX = 50;
 int initialY = 50;
-
+#include <algorithm>
 #include "GameWindow.h"
 #include "ui_GameWindow.h"
 #include "PlayingWindow.h"
@@ -46,15 +46,39 @@ GameWindow::~GameWindow() {
     delete enemyBoard;
 }
 
+bool GameWindow::areAllShipsPlaced() {
+    // std::set<int> placedShipIDs;
+    // for (const auto& row : board.getGrid()) {
+    //     for (int cell : row) {
+    //         if (cell > 0) {
+    //             placedShipIDs.insert(cell);
+    //         }
+    //     }
+    // }
+    // // Check if we have exactly 10 unique ship IDs
+    // return placedShipIDs.size() == 10;
+    return true; // Temporarily return true to bypass ship placement check
+}
+
 void GameWindow::onNextButtonClicked() {
     qDebug() << "Next button clicked";
+
+    if (!areAllShipsPlaced()) {
+        QMessageBox::warning(this, "Error", "You must place all 10 ships before proceeding!");
+        return;
+    }
 
     static bool isSecondPlayerSettingUp = false;
 
     if (modeChosen == 1) { // Versus Bot
         if (!playingWindow) {
             qDebug() << "Creating PlayingWindow instance for Versus Bot mode";
-            playingWindow = new PlayingWindow(this, this, &board, nullptr, &themeManager);
+
+            // Create and shuffle the enemy board for bot mode
+            Board* enemyBoard = new Board();
+            enemyBoard->shuffleBoard();
+
+            playingWindow = new PlayingWindow(this, this, &board, enemyBoard, &themeManager);
         }
 
         this->hide(); // Hide the current window
@@ -93,10 +117,16 @@ void GameWindow::onNextButtonClicked() {
             player1Board = board; // Store the first player's board in player1Board
 
             // Clear the current board for the second player
-            clearBoardUI(); // Clear the UI elements
-            board.reset(); // Reset the board for the second player
-            Ship::resetIDCounter(); // Reset ship IDs for the second player
-            initializeFleet(); // Reinitialize the fleet for the second player
+            board.reset(); // Reset the board
+            Ship::resetIDCounter();
+
+            // Remove Player 1's DraggableButtons
+            for (auto button : findChildren<DraggableButton*>()) {
+                button->hide();
+            }
+
+            // Reinitialize the fleet for the second player
+            initializeFleet();
 
             isSecondPlayerSettingUp = true;
 
@@ -108,6 +138,7 @@ void GameWindow::onNextButtonClicked() {
         }
     }
 }
+
 
 
 

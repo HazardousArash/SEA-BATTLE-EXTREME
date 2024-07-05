@@ -180,7 +180,7 @@ void Board::markAdjacentCellsUnavailable(int startX, int startY, int length, boo
             case 4:
                 if (isFlipped) {
                     for (int offsetX = -1; offsetX <= 1; ++offsetX) {
-                        for (int offsetY = -3; offsetY <= 1; ++offsetY) {
+                        for (int offsetY = -4; offsetY <= 1; ++offsetY) {
                             int adjX = x + offsetX;
                             int adjY = y + offsetY;
                             if (adjX >= 0 && adjX < size && adjY >= 0 && adjY < size) {

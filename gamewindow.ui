@@ -138,17 +138,18 @@ QPushButton:pressed {
   <widget class="QLabel" name="statusLabel">
    <property name="geometry">
     <rect>
-     <x>480</x>
+     <x>160</x>
      <y>620</y>
-     <width>291</width>
+     <width>901</width>
      <height>141</height>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">font: 28pt &quot;Segoe UI&quot;;</string>
+    <string notr="true">
+font: 18pt &quot;Segoe UI&quot;;</string>
    </property>
    <property name="text">
-    <string/>
+    <string>Player one, set your board. Don't let that sneaky player two peek at it!</string>
    </property>
   </widget>
   <zorder>tableLabel</zorder>

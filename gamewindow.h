@@ -2,6 +2,7 @@
 #define GAMEWINDOW_H
 #include <globalVariables.h>
 #include <QWidget>
+#include <QMessageBox>
 #include "ThemeManager.h"
 #include "Board.h"
 #include "Ship.h"
@@ -36,6 +37,7 @@ protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
+    bool areAllShipsPlaced() ;
     Ui::GameWindow *ui;
     std::vector<Ship*> ships;
     Ship currentShip;

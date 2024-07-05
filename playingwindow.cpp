@@ -301,4 +301,3 @@ void PlayingWindow::contextMenuEvent(QContextMenuEvent* event) {
 
     contextMenu.exec(event->globalPos());
 }
-
