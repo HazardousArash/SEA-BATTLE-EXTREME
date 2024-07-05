@@ -20,6 +20,7 @@ public:
     void setCurrentShipButton(DraggableButton* button);
     bool canDrag = true;
     void keyPressEvent(QKeyEvent* event);
+    void setButtonEnabled(bool enabled);
 private:
     bool dragging;
     QPoint dragStartPosition;
@@ -27,6 +28,7 @@ private:
      Ship& ship;
      DraggableButton* currentShipButton;
      bool isRotated;
+    void updateAppearance();
 
 signals:
     void shipDragged();

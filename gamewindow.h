@@ -1,6 +1,6 @@
 #ifndef GAMEWINDOW_H
 #define GAMEWINDOW_H
-
+#include <globalVariables.h>
 #include <QWidget>
 #include "ThemeManager.h"
 #include "Board.h"
@@ -27,10 +27,11 @@ public:
     void contextMenuEvent(QContextMenuEvent* event) override;
     void resetGame();
     Board *myBoard;
-    Board *enemyBoard;
+    Board *enemyBoard{nullptr};
     ThemeManager themeManager;
     PlayingWindow *playingWindow = nullptr;
     Board board;
+    void clearBoardUI();
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
@@ -56,6 +57,9 @@ private slots:
     void onNextButtonClicked();
     void switchToTheme1();
     void switchToTheme2();
+signals:
+    void secondPlayerSetupComplete();
+
 };
 
 #endif // GAMEWINDOW_H

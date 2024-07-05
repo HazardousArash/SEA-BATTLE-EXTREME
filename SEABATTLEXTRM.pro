@@ -16,6 +16,7 @@ SOURCES += \
     computerplayer.cpp \
     draggablebutton.cpp \
     gamewindow.cpp \
+    globalVariables.cpp \
     humanplayer.cpp \
     main.cpp \
     player.cpp \
@@ -30,6 +31,7 @@ HEADERS += \
     computerplayer.h \
     draggablebutton.h \
     gamewindow.h \
+    globalVariables.h \
     humanplayer.h \
     player.h \
     playingwindow.h \

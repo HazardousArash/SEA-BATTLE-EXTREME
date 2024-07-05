@@ -26,6 +26,7 @@ public:
     void shuffleBoard();
     int isValidStart(int x, int y, int length);
     void setAdjacenciesForBot(int id);
+    void reset();
 };
 
 #endif // BOARD_H

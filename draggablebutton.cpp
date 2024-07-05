@@ -3,9 +3,11 @@
 #include <qtimer.h>
 #include "ship.h"
 #include <algorithm>
-int rotateCounter=0;
+
+int rotateCounter = 0;
+
 DraggableButton::DraggableButton(const QIcon& icon, Ship& ship, QWidget* parent)
-    : QPushButton(parent), dragging(false), ship(ship),isRotated(false) {
+    : QPushButton(parent), dragging(false), ship(ship), isRotated(false) {
     setIcon(icon);
     setIconSize(QSize(64, 64));  // Adjust size as needed
     initialPosition = pos();     // Store the initial position here
@@ -13,15 +15,11 @@ DraggableButton::DraggableButton(const QIcon& icon, Ship& ship, QWidget* parent)
 
 void DraggableButton::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
-
         // Define the lower 30% region of the button
         int clickWidth = width();
         int clickHeight = height() * 0.3;
-
-        // Calculate the boundaries of the lower region
         int clickX = 0;
         int clickY = height() - clickHeight;
-
         QRect clickableRect(clickX, clickY, clickWidth, clickHeight);
 
         // Check if the click is within the lower region
@@ -67,7 +65,7 @@ void DraggableButton::mousePressEvent(QMouseEvent* event) {
             } else {
                 // If canDrag is false, reset to a specific position and allow dragging again
                 move(700, 700);
-                qDebug() << "Initial position:" << initialPosition;
+                //qDebug() << "Initial position:" << initialPosition;
 
                 canDrag = true;
             }
@@ -78,10 +76,6 @@ void DraggableButton::mousePressEvent(QMouseEvent* event) {
         event->ignore();  // Ignore other mouse events
     }
 }
-
-
-
-
 
 void GameWindow::resetGame() {
     // Clear the board
@@ -100,17 +94,11 @@ void GameWindow::resetGame() {
     }
 
     // Reinitialize the fleet
+    Ship::resetIDCounter();
     initializeFleet();
 
     qDebug() << "Game reset.";
 }
-
-
-
-
-
-
-
 
 void DraggableButton::mouseReleaseEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton && dragging) {
@@ -151,7 +139,7 @@ void DraggableButton::mouseReleaseEvent(QMouseEvent* event) {
                     ship.setStartX(startX);
                     ship.setStartY(startY);
 
-                    setEnabled(false);
+                    setButtonEnabled(false); // Disable the button but maintain its appearance
                 } else {
                     gameWindow->resetGame(); // Reset the game if released outside
                 }
@@ -167,11 +155,7 @@ void DraggableButton::mouseReleaseEvent(QMouseEvent* event) {
     }
 }
 
-
-
-
 void DraggableButton::keyPressEvent(QKeyEvent* event) {
-
     if (event->key() == Qt::Key_R && canDrag) {
         // Rotate the ship 90 degrees
         QSize currentSize = size();
@@ -181,14 +165,13 @@ void DraggableButton::keyPressEvent(QKeyEvent* event) {
         QTransform transform;
         if(!isRotated)
         {
-        isRotated=true;
-        transform.rotate(90);
+            isRotated = true;
+            transform.rotate(90);
         }
         else
         {
-            isRotated=false;
+            isRotated = false;
             transform.rotate(-90);
-
         }
 
         pixmap = pixmap.transformed(transform);
@@ -199,16 +182,9 @@ void DraggableButton::keyPressEvent(QKeyEvent* event) {
     }
 }
 
-
-
-
-
-
 void DraggableButton::setCurrentShipButton(DraggableButton* button) {
     currentShipButton = button;
 }
-
-
 
 void DraggableButton::mouseMoveEvent(QMouseEvent* event) {
     if (dragging && (event->buttons() & Qt::LeftButton)) {
@@ -242,8 +218,30 @@ void DraggableButton::mouseMoveEvent(QMouseEvent* event) {
     }
 }
 
+void DraggableButton::setButtonEnabled(bool enabled) {
+    setEnabled(enabled);
+    updateAppearance();
+}
 
-
-
-
-
+void DraggableButton::updateAppearance() {
+    if (!isEnabled()) {
+        setStyleSheet(
+            "QPushButton {"
+            "    border: none;"
+            "    padding: 0;"
+            "    background: transparent;"
+            "    opacity: 1.0;"
+            "    color: black;" // Ensure the text/icon color is set explicitly
+            "}"
+            );
+    } else {
+        setStyleSheet(
+            "QPushButton {"
+            "    border: none;"
+            "    padding: 0;"
+            "    background: transparent;"
+            "    color: black;" // Ensure the text/icon color is set explicitly
+            "}"
+            );
+    }
+}

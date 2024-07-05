@@ -362,7 +362,11 @@ void Board::shuffleBoard() {
         }
     }
 }
-
+void Board::reset() {
+    for (auto& row : grid) {
+        std::fill(row.begin(), row.end(), 0);
+    }
+}
 
 
 

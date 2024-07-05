@@ -26,9 +26,6 @@ int initialY = 50;
 GameWindow::GameWindow(QWidget *parent)
     : QWidget(parent),
     ui(new Ui::GameWindow),
-    myBoard(new Board(10)),
-    enemyBoard(new Board(10)),
-    themeManager(),
     playingWindow(nullptr) {
     ui->setupUi(this);
     initializeFleet();
@@ -37,7 +34,10 @@ GameWindow::GameWindow(QWidget *parent)
     setupTable();
 
     connect(ui->nextButton, &QPushButton::clicked, this, &GameWindow::onNextButtonClicked);
+    connect(this, &GameWindow::secondPlayerSetupComplete, this, &GameWindow::showPlayingWindow);
 }
+
+
 
 GameWindow::~GameWindow() {
     delete ui;
@@ -49,21 +49,64 @@ GameWindow::~GameWindow() {
 void GameWindow::onNextButtonClicked() {
     qDebug() << "Next button clicked";
 
-    if (!playingWindow) {
-        qDebug() << "Creating PlayingWindow instance";
-        // Pass the current state of the board to the PlayingWindow
-        playingWindow = new PlayingWindow(this, this, &board, nullptr, &themeManager);
+    static bool isSecondPlayerSettingUp = false;
+
+    if (modeChosen == 1) { // Versus Bot
+        if (!playingWindow) {
+            qDebug() << "Creating PlayingWindow instance for Versus Bot mode";
+            playingWindow = new PlayingWindow(this, this, &board, nullptr, &themeManager);
+        }
+
+        this->hide(); // Hide the current window
+        qDebug() << "GameWindow hidden";
+
+        playingWindow->setWindowFlags(Qt::Window); // Ensure it has window flags set correctly
+        playingWindow->setWindowModality(Qt::NonModal); // Ensure it is non-modal
+        playingWindow->show(); // Show the PlayingWindow
+        playingWindow->raise(); // Bring the PlayingWindow to the top
+        playingWindow->activateWindow(); // Focus the PlayingWindow
+        qDebug() << "PlayingWindow shown and activated";
+    } else if (modeChosen == 2) { // 1vs1 mode
+        if (isSecondPlayerSettingUp) {
+            // If this is the second player's turn to set up
+            qDebug() << "Second player finished setting up";
+            player2Board = board; // Store the second player's board in player2Board
+
+            emit secondPlayerSetupComplete(); // Emit the signal when the second player is done
+
+            this->hide(); // Hide the current window
+            qDebug() << "GameWindow hidden";
+
+            if (!playingWindow) {
+                qDebug() << "Creating PlayingWindow instance for 1vs1 mode";
+                playingWindow = new PlayingWindow(this, this, &player1Board, &player2Board, &themeManager);
+            }
+
+            playingWindow->setWindowFlags(Qt::Window); // Ensure it has window flags set correctly
+            playingWindow->setWindowModality(Qt::NonModal); // Ensure it is non-modal
+            playingWindow->show(); // Show the PlayingWindow
+            playingWindow->raise(); // Bring the PlayingWindow to the top
+            playingWindow->activateWindow(); // Focus the PlayingWindow
+            qDebug() << "PlayingWindow shown and activated";
+        } else {
+            qDebug() << "Player 1 finished setting up";
+            player1Board = board; // Store the first player's board in player1Board
+
+            // Clear the current board for the second player
+            clearBoardUI(); // Clear the UI elements
+            board.reset(); // Reset the board for the second player
+            Ship::resetIDCounter(); // Reset ship IDs for the second player
+            initializeFleet(); // Reinitialize the fleet for the second player
+
+            isSecondPlayerSettingUp = true;
+
+            // Show a message or update UI to indicate it's the second player's turn
+            ui->statusLabel->setText("Second player, set up your board!");
+
+            // Clear the grid background if necessary
+            resetBlockColors();
+        }
     }
-
-    this->hide(); // Hide the current window
-    qDebug() << "GameWindow hidden";
-
-    playingWindow->setWindowFlags(Qt::Window); // Ensure it has window flags set correctly
-    playingWindow->setWindowModality(Qt::NonModal); // Ensure it is non-modal
-    playingWindow->show(); // Show the PlayingWindow
-    playingWindow->raise(); // Bring the PlayingWindow to the top
-    playingWindow->activateWindow(); // Focus the PlayingWindow
-    qDebug() << "PlayingWindow shown and activated";
 }
 
 
@@ -227,6 +270,16 @@ void GameWindow::placeShipOnBoard(int startX, int startY) {
     }
 }
 
+void GameWindow::clearBoardUI() {
+    for (int j = 0; j < labelGrid.size(); ++j) {
+        for (int i = 0; i < labelGrid[j].size(); ++i) {
+            if (labelGrid[j][i]) {
+                labelGrid[j][i]->clear();
+                labelGrid[j][i]->setStyleSheet("border: none; background: transparent;");
+            }
+        }
+    }
+}
 
 
 bool GameWindow::isWithinGrid(int x, int y) {
@@ -295,22 +348,23 @@ bool GameWindow::eventFilter(QObject* obj, QEvent* event) {
         if (cell) {
             highlightAvailableBlocks();
 
-            int cellSize = 591/10;
-            int x = (cell->x() - 80) / cellSize;
-            int y = (cell->y() - 70) / cellSize;
-            qDebug() << "cellX=" << cell->x();
-            qDebug() << "cellY=" << cell->y();
+          //  int cellSize = 591/10;
+           // int x = (cell->x() - 80) / cellSize;
+            //int y = (cell->y() - 70) / cellSize;
+           // qDebug() << "cellX=" << cell->x();
+            //qDebug() << "cellY=" << cell->y();
 
             // Check if the ship can be placed without actually placing it
-            if (board.canPlaceShip(currentShip, x, y)) {
-                cell->setStyleSheet("background: green;");
-            } else {
-                cell->setStyleSheet("background: red;");
-            }
-        }
+            //if (board.canPlaceShip(currentShip, x, y)) {
+                //cell->setStyleSheet("background: green;");
+            //} else {
+                //cell->setStyleSheet("background: red;");
+            //}
+        //}
         return true;  // Event handled
     }
     return false;  // Event not handled, pass it on
+}
 }
 
 

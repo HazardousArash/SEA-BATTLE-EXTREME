@@ -18,7 +18,7 @@ PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myB
     ui(new Ui::PlayingWindow),
     gameWindow(gameWindow),
     myBoard(new Board(*myBoard)),  // Make a deep copy of the myBoard
-    enemyBoard(enemyBoard ? new Board(*enemyBoard) : nullptr),  // Make a deep copy of the enemyBoard if not nullptr
+    enemyBoard(new Board(*enemyBoard)),  // Make a deep copy of the enemyBoard
     themeManager(themeManager) {
     qDebug() << "PlayingWindow constructor started";
 
@@ -32,9 +32,7 @@ PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myB
     qDebug() << "Grid background setup completed";
 
     updateGridWithBoardState(this->myBoard, "myBoard"); // Update the grid with the current board state
-    if (this->enemyBoard) {
-        updateGridWithBoardState(this->enemyBoard, "enemyBoard"); // Update the enemy grid with the current board state
-    }
+    updateGridWithBoardState(this->enemyBoard, "enemyBoard"); // Update the enemy grid with the current board state
 
     if (this->myBoard) {
         qDebug() << "My Board size:" << this->myBoard->getGrid().size();
@@ -79,8 +77,7 @@ void PlayingWindow::setupGifBackground() {
 
 void PlayingWindow::setupGridBackground() {
     qDebug() << "Entering setupGridBackground...";
-    if (!themeManager)
-    {
+    if (!themeManager) {
         qDebug() << "ThemeManager is not initialized!";
         return;
     }
@@ -163,6 +160,8 @@ void PlayingWindow::setupGridBackground() {
     qDebug() << "Grid background setup completed.";
 }
 
+
+
 void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardName) {
     if (!board) {
         qDebug() << boardName << " is not initialized!";
@@ -211,7 +210,13 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
             }
 
             QPixmap shipPixmap = QPixmap(themeManager->getIconPath(shipIconName));
-            QSize cellSize = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(minY).arg(minX))->size();
+            QSize cellSize;
+
+            if (boardName == "myBoard") {
+                cellSize = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(minY).arg(minX))->size();
+            } else {
+                cellSize = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(minY).arg(minX))->size();
+            }
 
             if (minY == maxY) {  // Horizontal ship
                 QTransform transform;
@@ -225,7 +230,13 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
                 shipPixmap = shipPixmap.transformed(transform).scaled(iconSize, Qt::KeepAspectRatio);
             }
 
-            ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(minY).arg(minX));
+            ClickableLabel* cell;
+            if (boardName == "myBoard") {
+                cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(minY).arg(minX));
+            } else {
+                cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(minY).arg(minX));
+            }
+
             if (cell) {
                 cell->setPixmap(shipPixmap);
                 cell->setFixedSize(QSize(cellSize.width() * (minY == maxY ? shipLength : 1), cellSize.height() * (minX == maxX ? shipLength : 1)));
@@ -234,6 +245,7 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
         }
     }
 }
+
 
 void PlayingWindow::onBoardBlockClicked(int row, int col) {
     qDebug() << "Left-clicked on myBoard at (" << row << ", " << col << ")";

@@ -23,7 +23,9 @@ Ship::~Ship() {
     countOfShips--;
     shipMap.erase(ID);
 }
-
+void Ship::resetIDCounter() {
+    nextID = 1; // Reset the ID counter
+}
 std::map<int, Ship*> Ship::getAllShips() {
     return shipMap;
 }

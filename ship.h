@@ -13,7 +13,7 @@ public:
     ~Ship();
 
     bool isValid() const;
-
+    static void resetIDCounter();
     // Static methods
     static std::map<int, Ship*> getAllShips();
     static void createFleet();

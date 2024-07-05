@@ -135,12 +135,29 @@ QPushButton:pressed {
     <string/>
    </property>
   </widget>
+  <widget class="QLabel" name="statusLabel">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>620</y>
+     <width>291</width>
+     <height>141</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 28pt &quot;Segoe UI&quot;;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
   <zorder>tableLabel</zorder>
   <zorder>gridBackgroundLabel</zorder>
   <zorder>backButton</zorder>
   <zorder>nextButton</zorder>
   <zorder>largeShip</zorder>
   <zorder>tinyShip</zorder>
+  <zorder>statusLabel</zorder>
  </widget>
  <resources/>
  <connections/>
