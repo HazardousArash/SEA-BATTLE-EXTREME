@@ -77,7 +77,7 @@ void GameWindow::onNextButtonClicked() {
             // Create and shuffle the enemy board for bot mode
             Board* enemyBoard = new Board();
             enemyBoard->shuffleBoard();
-
+             board.resetUnavailableCells();
             playingWindow = new PlayingWindow(this, this, &board, enemyBoard, &themeManager);
         }
 
@@ -95,7 +95,8 @@ void GameWindow::onNextButtonClicked() {
             // If this is the second player's turn to set up
             qDebug() << "Second player finished setting up";
             player2Board = board; // Store the second player's board in player2Board
-
+            player1Board.resetUnavailableCells();
+            player2Board.resetUnavailableCells();
             emit secondPlayerSetupComplete(); // Emit the signal when the second player is done
 
             this->hide(); // Hide the current window

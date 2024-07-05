@@ -296,6 +296,15 @@ int Board::isValidStart(int x, int y, int length) {
 }
 
 
+void Board::resetUnavailableCells() {
+    for (auto& row : grid) {
+        for (auto& cell : row) {
+            if (cell == -1) {
+                cell = 0;
+            }
+        }
+    }
+}
 
 void Board::shuffleBoard() {
     int currentLength = 4; // Initial length (e.g., 10)
@@ -350,7 +359,6 @@ void Board::shuffleBoard() {
 
         // Update currentLength based on ship ID
 
-
         state = -1;
         qDebug() << "board:";
         for (int row = 0; row < rows; ++row) {
@@ -361,7 +369,11 @@ void Board::shuffleBoard() {
                                          << this->grid[row][8] << " " << this->grid[row][9];
         }
     }
+
+    // Reset unavailable cells before finishing
+    this->resetUnavailableCells();
 }
+
 void Board::reset() {
     for (auto& row : grid) {
         std::fill(row.begin(), row.end(), 0);

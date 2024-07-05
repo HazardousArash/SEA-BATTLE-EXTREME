@@ -27,6 +27,7 @@ public:
     int isValidStart(int x, int y, int length);
     void setAdjacenciesForBot(int id);
     void reset();
+    void resetUnavailableCells();
 };
 
 #endif // BOARD_H

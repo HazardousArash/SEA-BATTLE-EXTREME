@@ -238,13 +238,21 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
             }
 
             if (cell) {
-                cell->setPixmap(shipPixmap);
+                if (boardName == "enemyBoard" && modeChosen == 1) {
+                    cell->setStyleSheet("border: 2px solid red;"); // Add red border for visualization
+                    cell->setPixmap(QPixmap()); // Hide the pixmap
+                } else if (modeChosen == 2) {
+                    cell->setStyleSheet("border: 2px solid red;"); // Add red border for visualization
+                    cell->setPixmap(QPixmap()); // Hide the pixmap
+                } else {
+                    cell->setPixmap(shipPixmap);
+                }
                 cell->setFixedSize(QSize(cellSize.width() * (minY == maxY ? shipLength : 1), cellSize.height() * (minX == maxX ? shipLength : 1)));
-                cell->setStyleSheet("border: 2px solid red;"); // Add red border for visualization
             }
         }
     }
 }
+
 
 
 void PlayingWindow::onBoardBlockClicked(int row, int col) {
