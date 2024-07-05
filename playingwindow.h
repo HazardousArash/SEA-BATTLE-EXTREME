@@ -29,7 +29,7 @@ private:
     Board* myBoard;
     Board* enemyBoard;
     ThemeManager* themeManager;
-
+    void makeShipBlocksPurple(int shipID);
     void setupGridBackground();
     void setupGifBackground();
     void updateGridWithBoardState(Board* board, const QString& boardName);

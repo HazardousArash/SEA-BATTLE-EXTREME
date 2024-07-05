@@ -260,8 +260,53 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
 }
 
 void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
-    qDebug() << "Left-clicked on enemyBoard at (" << row << ", " << col << ")";
+    qDebug() << "Clicked on enemyBoard at (" << row << ", " << col << ")";
+
+    int cellValue = enemyBoard->getCell(row, col);
+
+    if (cellValue == 0) {
+        enemyBoard->getGrid()[row][col] = -1;
+        ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+        if (cell) {
+            cell->setStyleSheet("background-color: red; border: 1px solid gray;");
+            cell->setEnabled(false);  // Make it unclickable
+        }
+    } else if (cellValue > 0) {
+        int shipID = cellValue;
+        enemyBoard->getGrid()[row][col] = -cellValue; // Mark this cell as hit
+        ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+        if (cell) {
+            cell->setStyleSheet("background-color: green; border: 1px solid gray;");
+            cell->setEnabled(false);  // Make it unclickable
+        }
+
+        Ship* ship = Ship::getShipByID(shipID);
+        if (ship) {
+            ship->decrementHitPoints();
+            if (ship->getHitPoints() == 0) {
+                makeShipBlocksPurple(shipID);
+            }
+        }
+    }
 }
+
+void PlayingWindow::makeShipBlocksPurple(int shipID) {
+    const std::vector<std::vector<int>>& grid = enemyBoard->getGrid();
+    for (int row = 0; row < grid.size(); ++row) {
+        for (int col = 0; col < grid[row].size(); ++col) {
+            if (grid[row][col] == -shipID) {
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setStyleSheet("background-color: purple; border: 2px solid red;");
+                }
+            }
+        }
+    }
+}
+
+
+
+
 
 
 void PlayingWindow::showEvent(QShowEvent *event) {

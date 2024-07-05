@@ -6,7 +6,7 @@ std::map<int, Ship*> Ship::shipMap;
 
 Ship::Ship() : ID(0), length(0), isFlipped(true), isSunken(false) {}
 
-Ship::Ship(int length) : length(length), isFlipped(true), isSunken(false) {
+Ship::Ship(int length) : length(length), isFlipped(true), isSunken(false),hitPoints(length) {
     ID = nextID++;
     countOfShips++;
     shipMap[ID] = this;
@@ -29,7 +29,15 @@ void Ship::resetIDCounter() {
 std::map<int, Ship*> Ship::getAllShips() {
     return shipMap;
 }
+int Ship::getHitPoints() const {
+    return hitPoints;
+}
 
+void Ship::decrementHitPoints() {
+    if (hitPoints > 0) {
+        --hitPoints;
+    }
+}
 // creating a fleet...
 void Ship::createFleet() {
     // length 1 ships

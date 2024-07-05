@@ -33,7 +33,8 @@ public:
     void setIsSunken(bool isSunken);
     void setStartX(int x) { startX = x; }
     void setStartY(int y) { startY = y; }
-
+    int getHitPoints() const;
+    void decrementHitPoints();
     // Methods
     void rotate();
 
@@ -47,6 +48,7 @@ private:
     int length;
     bool isFlipped;
     bool isSunken;
+    int hitPoints;
 };
 
 #endif // SHIP_H
