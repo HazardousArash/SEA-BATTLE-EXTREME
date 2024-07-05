@@ -37,6 +37,13 @@ private:
 private slots:
     void onBoardBlockClicked(int row, int col);
     void onEnemyBoardBlockClicked(int row, int col);
+    void markSingleShipBlockGreen(int row, int col) ;
+    void makeShipBlocksWhite(int shipID);
+    void markSingleShipBlockWithCross(int row, int col);
+    void clearShipBlockCrosses(int shipID);
+    void makeShipBlocksPurple(int shipID, const QString& boardName);
+    void markSingleShipBlockWithCross(int row, int col, const QString& boardName);
+    void clearShipBlockCrosses(int shipID, const QString& boardName);
 };
 
 #endif // PLAYINGWINDOW_H

@@ -4,7 +4,7 @@
 #include "ThemeManager.h"
 #include "ClickableLabel.h"
 #include "GameWindow.h"
-
+#include <qpainter.h>
 #include <QDebug>
 #include <QMovie>
 #include <QGridLayout>
@@ -252,12 +252,131 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
         }
     }
 }
-
-
+void PlayingWindow::clearShipBlockCrosses(int shipID) {
+    const std::vector<std::vector<int>>& grid = enemyBoard->getGrid();
+    for (int row = 0; row < grid.size(); ++row) {
+        for (int col = 0; col < grid[row].size(); ++col) {
+            if (grid[row][col] == -shipID) {
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setPixmap(QPixmap());  // Clear the cross
+                }
+            }
+        }
+    }
+}
+void PlayingWindow::makeShipBlocksWhite(int shipID) {
+    const std::vector<std::vector<int>>& grid = enemyBoard->getGrid();
+    for (int row = 0; row < grid.size(); ++row) {
+        for (int col = 0; col < grid[row].size(); ++col) {
+            if (grid[row][col] == -shipID) {
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setStyleSheet("background: transparent; border: 1px solid gray;");
+                }
+            }
+        }
+    }
+}
 
 void PlayingWindow::onBoardBlockClicked(int row, int col) {
-    qDebug() << "Left-clicked on myBoard at (" << row << ", " << col << ")";
+    qDebug() << "Clicked on myBoard at (" << row << ", " << col << ")";
+
+    int cellValue = myBoard->getCell(row, col);
+
+    if (cellValue == 0) {
+        myBoard->getGrid()[row][col] = -1;
+        markSingleShipBlockWithCross(row, col, "myBoard");
+        ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+        if (cell) {
+            cell->setEnabled(false);  // Make it unclickable
+        }
+    } else if (cellValue > 0) {
+        int shipID = cellValue;
+        myBoard->getGrid()[row][col] = -cellValue;
+        markSingleShipBlockWithCross(row, col, "myBoard");
+        ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+        if (cell) {
+            cell->setEnabled(false);  // Make it unclickable
+        }
+
+        Ship* ship = Ship::getShipByID(shipID);
+        if (ship) {
+            ship->decrementHitPoints();
+            if (ship->getHitPoints() == 0) {
+                clearShipBlockCrosses(shipID, "myBoard");  // Clear crosses
+                makeShipBlocksPurple(shipID, "myBoard");   // Mark blocks purple
+            }
+        }
+    }
 }
+
+void PlayingWindow::markSingleShipBlockWithCross(int row, int col, const QString& boardName) {
+    ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+    if (boardName == "enemyBoard") {
+        cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+    }
+
+    if (cell) {
+        QPoint clickPos = cell->mapFromGlobal(QCursor::pos()); // Get the position of the mouse click relative to the cell
+        QPixmap pixmap(cell->size());
+        pixmap.fill(Qt::transparent);
+
+        QPainter painter(&pixmap);
+        painter.setRenderHint(QPainter::Antialiasing);
+
+        // Draw the existing pixmap if any
+        QPixmap originalPixmap = cell->pixmap(Qt::ReturnByValue);
+        if (!originalPixmap.isNull()) {
+            painter.drawPixmap(0, 0, originalPixmap.scaled(cell->size()));
+        }
+
+        // Draw a semi-transparent cross centered at the click position
+        painter.setPen(QPen(QColor(0, 255, 0, 128), 2));  // Glassy green color
+        int crossSize = 10; // Size of the cross
+        painter.drawLine(clickPos.x() - crossSize, clickPos.y() - crossSize, clickPos.x() + crossSize, clickPos.y() + crossSize);
+        painter.drawLine(clickPos.x() + crossSize, clickPos.y() - crossSize, clickPos.x() - crossSize, clickPos.y() + crossSize);
+
+        painter.end();
+
+        cell->setPixmap(pixmap);
+    }
+}
+
+void PlayingWindow::clearShipBlockCrosses(int shipID, const QString& boardName) {
+    const std::vector<std::vector<int>>& grid = boardName == "myBoard" ? myBoard->getGrid() : enemyBoard->getGrid();
+    for (int row = 0; row < grid.size(); ++row) {
+        for (int col = 0; col < grid[row].size(); ++col) {
+            if (grid[row][col] == -shipID) {
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+                if (boardName == "enemyBoard") {
+                    cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+                }
+                if (cell) {
+                    cell->setPixmap(QPixmap());  // Clear the cross
+                }
+            }
+        }
+    }
+}
+
+void PlayingWindow::makeShipBlocksPurple(int shipID, const QString& boardName) {
+    const std::vector<std::vector<int>>& grid = boardName == "myBoard" ? myBoard->getGrid() : enemyBoard->getGrid();
+    for (int row = 0; row < grid.size(); ++row) {
+        for (int col = 0; col < grid[row].size(); ++col) {
+            if (grid[row][col] == -shipID) {
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+                if (boardName == "enemyBoard") {
+                    cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+                }
+                if (cell) {
+                    cell->setStyleSheet("background: rgba(128, 0, 128, 128); border: 1px solid gray;");  // Glassy purple color
+                }
+            }
+        }
+    }
+}
+
 
 void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
     qDebug() << "Clicked on enemyBoard at (" << row << ", " << col << ")";
@@ -266,17 +385,17 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
 
     if (cellValue == 0) {
         enemyBoard->getGrid()[row][col] = -1;
+        markSingleShipBlockWithCross(row, col);
         ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
         if (cell) {
-            cell->setStyleSheet("background-color: red; border: 1px solid gray;");
             cell->setEnabled(false);  // Make it unclickable
         }
     } else if (cellValue > 0) {
         int shipID = cellValue;
-        enemyBoard->getGrid()[row][col] = -cellValue; // Mark this cell as hit
+        enemyBoard->getGrid()[row][col] = -cellValue;
+        markSingleShipBlockWithCross(row, col);
         ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
         if (cell) {
-            cell->setStyleSheet("background-color: green; border: 1px solid gray;");
             cell->setEnabled(false);  // Make it unclickable
         }
 
@@ -284,12 +403,40 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
         if (ship) {
             ship->decrementHitPoints();
             if (ship->getHitPoints() == 0) {
-                makeShipBlocksPurple(shipID);
+                clearShipBlockCrosses(shipID);  // Clear crosses
+                makeShipBlocksPurple(shipID);   // Mark blocks purple
             }
         }
     }
 }
 
+void PlayingWindow::markSingleShipBlockWithCross(int row, int col) {
+    ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+    if (cell) {
+        QPoint clickPos = cell->mapFromGlobal(QCursor::pos()); // Get the position of the mouse click relative to the cell
+        QPixmap pixmap(cell->size());
+        pixmap.fill(Qt::transparent);
+
+        QPainter painter(&pixmap);
+        painter.setRenderHint(QPainter::Antialiasing);
+
+        // Draw the existing pixmap if any
+        QPixmap originalPixmap = cell->pixmap(Qt::ReturnByValue);
+        if (!originalPixmap.isNull()) {
+            painter.drawPixmap(0, 0, originalPixmap.scaled(cell->size()));
+        }
+
+        // Draw a cross centered at the click position
+        painter.setPen(QPen(Qt::green, 2));  // Adjust the color and thickness as needed
+        int crossSize = 10; // Size of the cross
+        painter.drawLine(clickPos.x() - crossSize, clickPos.y() - crossSize, clickPos.x() + crossSize, clickPos.y() + crossSize);
+        painter.drawLine(clickPos.x() + crossSize, clickPos.y() - crossSize, clickPos.x() - crossSize, clickPos.y() + crossSize);
+
+        painter.end();
+
+        cell->setPixmap(pixmap);
+    }
+}
 void PlayingWindow::makeShipBlocksPurple(int shipID) {
     const std::vector<std::vector<int>>& grid = enemyBoard->getGrid();
     for (int row = 0; row < grid.size(); ++row) {
@@ -297,13 +444,34 @@ void PlayingWindow::makeShipBlocksPurple(int shipID) {
             if (grid[row][col] == -shipID) {
                 ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
                 if (cell) {
-                    cell->setStyleSheet("background-color: purple; border: 2px solid red;");
+                    cell->setStyleSheet("background: green; border: 1px solid gray;");
                 }
             }
         }
     }
 }
 
+
+void PlayingWindow::markSingleShipBlockGreen(int row, int col) {
+    ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+    if (cell) {
+        QPixmap originalPixmap = cell->pixmap(Qt::ReturnByValue);
+        if (!originalPixmap.isNull()) {
+            QPixmap tintedPixmap(originalPixmap.size());
+            tintedPixmap.fill(Qt::transparent);
+
+            QPainter painter(&tintedPixmap);
+            painter.drawPixmap(0, 0, originalPixmap);
+            painter.setCompositionMode(QPainter::CompositionMode_SourceAtop);
+            painter.fillRect(tintedPixmap.rect(), QColor(0, 255, 0, 128));  // Green tint
+            painter.end();
+
+            cell->setPixmap(tintedPixmap);
+        } else {
+            cell->setStyleSheet("background-color: green; border: 1px solid gray;");
+        }
+    }
+}
 
 
 
