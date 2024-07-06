@@ -9,6 +9,8 @@
 #include "DraggableButton.h"
 #include "PlayingWindow.h"
 #include "ui_playingwindow.h"
+#include <QTimer>
+
 class PlayingWindow;
 namespace Ui {
 class GameWindow;
@@ -33,6 +35,9 @@ public:
     PlayingWindow *playingWindow = nullptr;
     Board board;
     void clearBoardUI();
+    bool player1Turn;
+    bool player2Turn;
+    void triggerBotTurn();
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
@@ -59,6 +64,7 @@ private slots:
     void onNextButtonClicked();
     void switchToTheme1();
     void switchToTheme2();
+
 signals:
     void secondPlayerSetupComplete();
 

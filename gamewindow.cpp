@@ -22,11 +22,14 @@ int initialY = 50;
 #include "ui_GameWindow.h"
 #include <QDebug>
 #include "thememanager.h"
-
+#include <QTimer>
 GameWindow::GameWindow(QWidget *parent)
     : QWidget(parent),
     ui(new Ui::GameWindow),
-    playingWindow(nullptr) {
+    playingWindow(nullptr),
+    player1Turn(true),  // Player 1 starts
+    player2Turn(false)  // Player 2 (bot) doesn't start
+{
     ui->setupUi(this);
     initializeFleet();
     setupGridBackground();
@@ -77,7 +80,8 @@ void GameWindow::onNextButtonClicked() {
             // Create and shuffle the enemy board for bot mode
             Board* enemyBoard = new Board();
             enemyBoard->shuffleBoard();
-             board.resetUnavailableCells();
+            board.resetUnavailableCells();
+
             playingWindow = new PlayingWindow(this, this, &board, enemyBoard, &themeManager);
         }
 
@@ -90,6 +94,9 @@ void GameWindow::onNextButtonClicked() {
         playingWindow->raise(); // Bring the PlayingWindow to the top
         playingWindow->activateWindow(); // Focus the PlayingWindow
         qDebug() << "PlayingWindow shown and activated";
+
+        // Trigger the bot's turn after the player has completed their setup
+        QTimer::singleShot(1000, this, &GameWindow::triggerBotTurn);
     } else if (modeChosen == 2) { // 1vs1 mode
         if (isSecondPlayerSettingUp) {
             // If this is the second player's turn to set up
@@ -136,6 +143,60 @@ void GameWindow::onNextButtonClicked() {
 
             // Clear the grid background if necessary
             resetBlockColors();
+        }
+    }
+}
+
+void GameWindow::triggerBotTurn() {
+    if (modeChosen == 1) { // Versus Bot mode
+        qDebug() << "Bot's turn to play.";
+        // Call the bot's AI function to make a move
+        int selectedRow, selectedCol;
+        int result = board.botAi(selectedRow, selectedCol);
+
+        // Reflect changes on myBoard
+        if (myBoard) {
+            myBoard->getGrid() = board.getGrid(); // Copy the grid state
+        }
+
+        // Update the playing window to reflect the bot's move
+        if (playingWindow) {
+            playingWindow->updateGridWithBoardState(myBoard, "myBoard");
+
+            if (result == -1) { // Miss
+                playingWindow->markSingleShipBlockWithCross(selectedRow, selectedCol, "myBoard");
+                ClickableLabel* cell = playingWindow->findChild<ClickableLabel*>(QString("cell_%1_%2").arg(selectedRow).arg(selectedCol));
+                if (cell) {
+                    cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;"); // Glassy red
+                    cell->setEnabled(false); // Make it unclickable
+                }
+                qDebug() << "Bot missed. Switching to player 1's turn.";
+                player1Turn = true;
+                player2Turn = false; // Switch back to player's turn
+            } else if (result > 0) { // Hit or Sunk
+                int shipID = result;
+                Ship* ship = Ship::getShipByID(shipID);
+                if (ship) {
+                    ship->decrementHitPoints();
+                    playingWindow->markSingleShipBlockWithCross(selectedRow, selectedCol, "myBoard");
+                    ClickableLabel* cell = playingWindow->findChild<ClickableLabel*>(QString("cell_%1_%2").arg(selectedRow).arg(selectedCol));
+                    if (cell) {
+                        cell->setEnabled(false); // Make it unclickable
+                    }
+
+                    if (ship->getHitPoints() == 0) {
+                        playingWindow->clearShipBlockCrosses(shipID, "myBoard");
+                        playingWindow->makeShipBlocksPurple(shipID, "myBoard");
+                    }
+                }
+                qDebug() << "Bot hit a ship. Bot gets another turn.";
+                // Bot gets another turn if it hits a ship
+                QTimer::singleShot(1000, this, &GameWindow::triggerBotTurn);
+            } else {
+                qDebug() << "Bot's turn ended. Switching to player 1's turn.";
+                player1Turn = true;
+                player2Turn = false; // Switch back to player's turn
+            }
         }
     }
 }

@@ -12,8 +12,7 @@
 #include <QShowEvent>
 #include <QContextMenuEvent>
 #include <QMenu>
-bool player1Turn = true;
-bool player2Turn = false;
+#include "GlobalVariables.h"
 PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myBoard, Board* enemyBoard, ThemeManager* themeManager)
     : QWidget(parent),
     ui(new Ui::PlayingWindow),
@@ -279,10 +278,9 @@ void PlayingWindow::makeShipBlocksWhite(int shipID) {
         }
     }
 }
-
 void PlayingWindow::onBoardBlockClicked(int row, int col) {
-    if (player2Turn) {
-        qDebug() << "Clicked on myBoard at (" << row << ", " << col << ")";
+    if (player2Turn && modeChosen != 1) {
+        qDebug() << "Player 2 clicked on myBoard at (" << row << ", " << col << ")";
 
         int cellValue = myBoard->getCell(row, col);
 
@@ -322,12 +320,8 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
     }
 }
 
-void PlayingWindow::markSingleShipBlockWithCross(int row, int col, const QString& boardName) {
-    ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
-    if (boardName == "enemyBoard") {
-        cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
-    }
-
+void PlayingWindow::markSingleShipBlockWithCross(int row, int col) {
+    ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
     if (cell) {
         QPoint clickPos = cell->mapFromGlobal(QCursor::pos()); // Get the position of the mouse click relative to the cell
         QPixmap pixmap(cell->size());
@@ -342,8 +336,8 @@ void PlayingWindow::markSingleShipBlockWithCross(int row, int col, const QString
             painter.drawPixmap(0, 0, originalPixmap.scaled(cell->size()));
         }
 
-        // Draw a semi-transparent cross centered at the click position
-        painter.setPen(QPen(QColor(0, 255, 0, 128), 2));  // Glassy green color
+        // Draw a cross centered at the click position
+        painter.setPen(QPen(Qt::red, 2));  // Adjust the color and thickness as needed
         int crossSize = 10; // Size of the cross
         painter.drawLine(clickPos.x() - crossSize, clickPos.y() - crossSize, clickPos.x() + crossSize, clickPos.y() + crossSize);
         painter.drawLine(clickPos.x() + crossSize, clickPos.y() - crossSize, clickPos.x() - crossSize, clickPos.y() + crossSize);
@@ -353,6 +347,9 @@ void PlayingWindow::markSingleShipBlockWithCross(int row, int col, const QString
         cell->setPixmap(pixmap);
     }
 }
+
+
+
 
 void PlayingWindow::clearShipBlockCrosses(int shipID, const QString& boardName) {
     const std::vector<std::vector<int>>& grid = boardName == "myBoard" ? myBoard->getGrid() : enemyBoard->getGrid();
@@ -390,8 +387,9 @@ void PlayingWindow::makeShipBlocksPurple(int shipID, const QString& boardName) {
 
 
 void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
+    GameWindow *gameWindow = static_cast<GameWindow*>(parent());
     if (player1Turn) {
-        qDebug() << "Clicked on enemyBoard at (" << row << ", " << col << ")";
+        qDebug() << "Player 1 clicked on enemyBoard at (" << row << ", " << col << ")";
 
         int cellValue = enemyBoard->getCell(row, col);
 
@@ -404,8 +402,16 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
                 cell->setEnabled(false);  // Make it unclickable
             }
             // Switch turns
-            player1Turn = false;
-            player2Turn = true;
+            if (modeChosen == 2) {
+                qDebug() << "Player 1 missed. Switching to player 2's turn.";
+                player1Turn = false;
+                player2Turn = true;
+            } else {
+                qDebug() << "Player 1 missed. Switching to bot's turn.";
+                player1Turn = false;
+                player2Turn = true;
+                QTimer::singleShot(1000, gameWindow, &GameWindow::triggerBotTurn);
+            }
         } else if (cellValue > 0) {
             int shipID = cellValue;
             enemyBoard->getGrid()[row][col] = -cellValue;
@@ -425,14 +431,23 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             }
 
             // Player gets a bonus shot, do not switch turns
+            qDebug() << "Player 1 hit a ship. Player 1 gets another turn.";
         }
     } else {
         qDebug() << "It's not player 1's turn!";
     }
 }
 
-void PlayingWindow::markSingleShipBlockWithCross(int row, int col) {
-    ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+
+
+
+void PlayingWindow::markSingleShipBlockWithCross(int row, int col, const QString& boardName) {
+    qDebug() << "Marking block with cross at (" << row << ", " << col << ") on " << boardName;
+    ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+    if (boardName == "enemyBoard") {
+        cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+    }
+
     if (cell) {
         QPoint clickPos = cell->mapFromGlobal(QCursor::pos()); // Get the position of the mouse click relative to the cell
         QPixmap pixmap(cell->size());
@@ -448,7 +463,7 @@ void PlayingWindow::markSingleShipBlockWithCross(int row, int col) {
         }
 
         // Draw a cross centered at the click position
-        painter.setPen(QPen(Qt::green, 2));  // Adjust the color and thickness as needed
+        painter.setPen(QPen(Qt::red, 2));  // Use red for the cross
         int crossSize = 10; // Size of the cross
         painter.drawLine(clickPos.x() - crossSize, clickPos.y() - crossSize, clickPos.x() + crossSize, clickPos.y() + crossSize);
         painter.drawLine(clickPos.x() + crossSize, clickPos.y() - crossSize, clickPos.x() - crossSize, clickPos.y() + crossSize);
@@ -456,8 +471,11 @@ void PlayingWindow::markSingleShipBlockWithCross(int row, int col) {
         painter.end();
 
         cell->setPixmap(pixmap);
+    } else {
+        qDebug() << "Error: ClickableLabel not found for (" << row << ", " << col << ") on " << boardName;
     }
 }
+
 void PlayingWindow::makeShipBlocksPurple(int shipID) {
     const std::vector<std::vector<int>>& grid = enemyBoard->getGrid();
     for (int row = 0; row < grid.size(); ++row) {
@@ -543,3 +561,4 @@ void PlayingWindow::contextMenuEvent(QContextMenuEvent* event) {
 
     contextMenu.exec(event->globalPos());
 }
+

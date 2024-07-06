@@ -2,6 +2,7 @@
 #include <iostream>
 #include <qdebug.h>
 #include <qrandom.h>
+#include "globalVariables.h"
 const int rows=10;
 const int cols=10;
 Board::Board(int size) : size(size) {
@@ -379,6 +380,50 @@ void Board::reset() {
         std::fill(row.begin(), row.end(), 0);
     }
 }
+int Board::botAi(int& selectedRow, int& selectedCol) {
+    selectedRow = QRandomGenerator::global()->bounded(rows);
+    selectedCol = QRandomGenerator::global()->bounded(cols);
+
+    while (grid[selectedRow][selectedCol] < 0) {
+        selectedRow = QRandomGenerator::global()->bounded(rows);
+        selectedCol = QRandomGenerator::global()->bounded(cols);
+    }
+
+    if (grid[selectedRow][selectedCol] == 0) {
+        grid[selectedRow][selectedCol] = -1;
+        player2Turn = false;
+        player1Turn = true;
+        qDebug() << "Bot missed at (" << selectedRow << ", " << selectedCol << "). Switching to player 1's turn.";
+        return -1; // Miss
+    } else if (grid[selectedRow][selectedCol] > 0) {
+        int shipID = grid[selectedRow][selectedCol];
+        grid[selectedRow][selectedCol] *= -1;
+        player2Turn = true;
+        player1Turn = false;
+        qDebug() << "Bot hit at (" << selectedRow << ", " << selectedCol << "). Bot gets another turn.";
+
+        // Check if the ship is sunk
+        bool isSunk = true;
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                if (grid[i][j] == shipID) {
+                    isSunk = false;
+                    break;
+                }
+            }
+        }
+        if (isSunk) {
+            qDebug() << "Bot sunk the ship with ID" << shipID << "at (" << selectedRow << ", " << selectedCol << ").";
+            return shipID; // Sunk
+        }
+        return 1; // Hit
+    }
+    return 0; // Default case, shouldn't reach here
+}
+
+
+
+
 
 
 
