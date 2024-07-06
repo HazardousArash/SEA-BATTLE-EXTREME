@@ -12,7 +12,8 @@
 #include <QShowEvent>
 #include <QContextMenuEvent>
 #include <QMenu>
-
+bool player1Turn = true;
+bool player2Turn = false;
 PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myBoard, Board* enemyBoard, ThemeManager* themeManager)
     : QWidget(parent),
     ui(new Ui::PlayingWindow),
@@ -280,34 +281,44 @@ void PlayingWindow::makeShipBlocksWhite(int shipID) {
 }
 
 void PlayingWindow::onBoardBlockClicked(int row, int col) {
-    qDebug() << "Clicked on myBoard at (" << row << ", " << col << ")";
+    if (player2Turn) {
+        qDebug() << "Clicked on myBoard at (" << row << ", " << col << ")";
 
-    int cellValue = myBoard->getCell(row, col);
+        int cellValue = myBoard->getCell(row, col);
 
-    if (cellValue == 0) {
-        myBoard->getGrid()[row][col] = -1;
-        markSingleShipBlockWithCross(row, col, "myBoard");
-        ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
-        if (cell) {
-            cell->setEnabled(false);  // Make it unclickable
-        }
-    } else if (cellValue > 0) {
-        int shipID = cellValue;
-        myBoard->getGrid()[row][col] = -cellValue;
-        markSingleShipBlockWithCross(row, col, "myBoard");
-        ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
-        if (cell) {
-            cell->setEnabled(false);  // Make it unclickable
-        }
-
-        Ship* ship = Ship::getShipByID(shipID);
-        if (ship) {
-            ship->decrementHitPoints();
-            if (ship->getHitPoints() == 0) {
-                clearShipBlockCrosses(shipID, "myBoard");  // Clear crosses
-                makeShipBlocksPurple(shipID, "myBoard");   // Mark blocks purple
+        if (cellValue == 0) {
+            myBoard->getGrid()[row][col] = -1;
+            markSingleShipBlockWithCross(row, col, "myBoard");
+            ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+            if (cell) {
+                cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;");  // Glassy red
+                cell->setEnabled(false);  // Make it unclickable
             }
+            // Switch turns
+            player1Turn = true;
+            player2Turn = false;
+        } else if (cellValue > 0) {
+            int shipID = cellValue;
+            myBoard->getGrid()[row][col] = -cellValue;
+            markSingleShipBlockWithCross(row, col, "myBoard");
+            ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+            if (cell) {
+                cell->setEnabled(false);  // Make it unclickable
+            }
+
+            Ship* ship = Ship::getShipByID(shipID);
+            if (ship) {
+                ship->decrementHitPoints();
+                if (ship->getHitPoints() == 0) {
+                    clearShipBlockCrosses(shipID, "myBoard");  // Clear crosses
+                    makeShipBlocksPurple(shipID, "myBoard");   // Mark blocks purple
+                }
+            }
+
+            // Player gets a bonus shot, do not switch turns
         }
+    } else {
+        qDebug() << "It's not player 2's turn!";
     }
 }
 
@@ -379,34 +390,44 @@ void PlayingWindow::makeShipBlocksPurple(int shipID, const QString& boardName) {
 
 
 void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
-    qDebug() << "Clicked on enemyBoard at (" << row << ", " << col << ")";
+    if (player1Turn) {
+        qDebug() << "Clicked on enemyBoard at (" << row << ", " << col << ")";
 
-    int cellValue = enemyBoard->getCell(row, col);
+        int cellValue = enemyBoard->getCell(row, col);
 
-    if (cellValue == 0) {
-        enemyBoard->getGrid()[row][col] = -1;
-        markSingleShipBlockWithCross(row, col);
-        ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
-        if (cell) {
-            cell->setEnabled(false);  // Make it unclickable
-        }
-    } else if (cellValue > 0) {
-        int shipID = cellValue;
-        enemyBoard->getGrid()[row][col] = -cellValue;
-        markSingleShipBlockWithCross(row, col);
-        ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
-        if (cell) {
-            cell->setEnabled(false);  // Make it unclickable
-        }
-
-        Ship* ship = Ship::getShipByID(shipID);
-        if (ship) {
-            ship->decrementHitPoints();
-            if (ship->getHitPoints() == 0) {
-                clearShipBlockCrosses(shipID);  // Clear crosses
-                makeShipBlocksPurple(shipID);   // Mark blocks purple
+        if (cellValue == 0) {
+            enemyBoard->getGrid()[row][col] = -1;
+            markSingleShipBlockWithCross(row, col, "enemyBoard");
+            ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+            if (cell) {
+                cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;");  // Glassy red
+                cell->setEnabled(false);  // Make it unclickable
             }
+            // Switch turns
+            player1Turn = false;
+            player2Turn = true;
+        } else if (cellValue > 0) {
+            int shipID = cellValue;
+            enemyBoard->getGrid()[row][col] = -cellValue;
+            markSingleShipBlockWithCross(row, col, "enemyBoard");
+            ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+            if (cell) {
+                cell->setEnabled(false);  // Make it unclickable
+            }
+
+            Ship* ship = Ship::getShipByID(shipID);
+            if (ship) {
+                ship->decrementHitPoints();
+                if (ship->getHitPoints() == 0) {
+                    clearShipBlockCrosses(shipID, "enemyBoard");  // Clear crosses
+                    makeShipBlocksPurple(shipID, "enemyBoard");   // Mark blocks purple
+                }
+            }
+
+            // Player gets a bonus shot, do not switch turns
         }
+    } else {
+        qDebug() << "It's not player 1's turn!";
     }
 }
 

@@ -191,7 +191,7 @@ void Board::markAdjacentCellsUnavailable(int startX, int startY, int length, boo
                         }
                     }
                 } else {
-                    for (int offsetX = -1; offsetX <= 0; ++offsetX) {
+                    for (int offsetX = -1; offsetX <= 1; ++offsetX) {
                         for (int offsetY = -1; offsetY <= 1; ++offsetY) {
                             int adjX = x + offsetX;
                             int adjY = y + offsetY;
