@@ -38,6 +38,7 @@ public:
     bool player1Turn;
     bool player2Turn;
     void triggerBotTurn();
+
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 

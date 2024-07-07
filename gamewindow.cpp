@@ -12,8 +12,6 @@
 #include <QDebug>
 #include <QTimer>
 #include <set>
-int initialX = 50;
-int initialY = 50;
 #include <algorithm>
 #include "GameWindow.h"
 #include "ui_GameWindow.h"
@@ -23,14 +21,16 @@ int initialY = 50;
 #include <QDebug>
 #include "thememanager.h"
 #include <QTimer>
+int initialX = 50;
+int initialY = 50;
 GameWindow::GameWindow(QWidget *parent)
     : QWidget(parent),
     ui(new Ui::GameWindow),
     playingWindow(nullptr),
-    myBoard(new Board()),  // Ensure myBoard is initialized
-    enemyBoard(new Board()),  // Ensure enemyBoard is initialized
-    player1Turn(true),  // Player 1 starts
-    player2Turn(false) { // Player 2 (bot) doesn't start
+    myBoard(new Board()),  // Initialize myBoard
+    enemyBoard(new Board()),
+    player1Turn(true),
+    player2Turn(false) {
     ui->setupUi(this);
     initializeFleet();
     setupGridBackground();
@@ -40,6 +40,7 @@ GameWindow::GameWindow(QWidget *parent)
     connect(ui->nextButton, &QPushButton::clicked, this, &GameWindow::onNextButtonClicked);
     connect(this, &GameWindow::secondPlayerSetupComplete, this, &GameWindow::showPlayingWindow);
 }
+
 
 
 
@@ -148,24 +149,40 @@ void GameWindow::onNextButtonClicked() {
         }
     }
 }
-
 void GameWindow::triggerBotTurn() {
     if (modeChosen == 1) { // Versus Bot mode
         qDebug() << "Bot's turn to play.";
+
+        // Debug: Check myBoard state before bot's turn
+        qDebug() << "Before bot's turn, myBoard state:";
+        for (const auto& row : myBoard->getGrid()) {
+            QString rowString;
+            for (int cell : row) {
+                rowString += QString::number(cell) + " ";
+            }
+            qDebug() << rowString;
+        }
+
         // Call the bot's AI function to make a move
         int selectedRow, selectedCol;
-        int result = board.botAi(selectedRow, selectedCol);
+        int result = enemyBoard->botAi(*myBoard, selectedRow, selectedCol); // Use myBoard directly
 
-        // Reflect changes on myBoard
-        if (myBoard) {
-            myBoard->getGrid() = board.getGrid(); // Copy the grid state
-            qDebug() << "myBoard grid size: " << myBoard->getGrid().size();
-            qDebug() << "board grid size: " << board.getGrid().size();
-        }
+        // Debug: Check the selected cell and result
+        qDebug() << "Bot selected (" << selectedRow << ", " << selectedCol << "), result: " << result;
 
         // Update the playing window to reflect the bot's move
         if (playingWindow) {
-            playingWindow->updateGridWithBoardState(myBoard, "myBoard");
+            playingWindow->updateGridWithBoardState(myBoard, "myBoard"); // Use myBoard directly
+
+            // Debug: Check myBoard state after update
+            qDebug() << "After updateGridWithBoardState, myBoard state:";
+            for (const auto& row : myBoard->getGrid()) {
+                QString rowString;
+                for (int cell : row) {
+                    rowString += QString::number(cell) + " ";
+                }
+                qDebug() << rowString;
+            }
 
             if (result == -1) { // Miss
                 playingWindow->markSingleShipBlockWithCross(selectedRow, selectedCol, "myBoard");
@@ -177,12 +194,9 @@ void GameWindow::triggerBotTurn() {
                 qDebug() << "Bot missed. Switching to player 1's turn.";
                 player1Turn = true;
                 player2Turn = false; // Switch back to player's turn
-            } else if (result == -2) { // All ships sunk
-                QMessageBox::information(this, "Game Over", "You have lost. The bot sunk all your ships.");
-                // Call new widget or reset the game
-                return;
-            } else if (result > 0) { // Hit or Sunk
-                int shipID = result;
+            } else if (result == 1) { // Hit
+                int shipID = -myBoard->getCell(selectedRow, selectedCol);
+                qDebug() << "Bot hit ship part. Ship ID: " << shipID;
                 Ship* ship = Ship::getShipByID(shipID);
                 if (ship) {
                     ship->decrementHitPoints();
@@ -200,6 +214,11 @@ void GameWindow::triggerBotTurn() {
                 qDebug() << "Bot hit a ship. Bot gets another turn.";
                 // Bot gets another turn if it hits a ship
                 QTimer::singleShot(1000, this, &GameWindow::triggerBotTurn);
+            } else if (result == -2) { // Ship sunk
+                int shipID = -myBoard->getCell(selectedRow, selectedCol);
+                playingWindow->makeShipBlocksPurple(shipID, "myBoard");
+                qDebug() << "Bot sunk the ship. Bot gets another turn.";
+                QTimer::singleShot(1000, this, &GameWindow::triggerBotTurn); // Bot gets another turn if it sinks a ship
             } else {
                 qDebug() << "Bot's turn ended. Switching to player 1's turn.";
                 player1Turn = true;
@@ -208,6 +227,9 @@ void GameWindow::triggerBotTurn() {
         }
     }
 }
+
+
+
 
 
 

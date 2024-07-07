@@ -24,6 +24,8 @@ public:
     void clearShipBlockCrosses(int shipID);
     void markSingleShipBlockWithCross(int row, int col);
     void markSingleShipBlockWithCross(int row, int col, const QString& boardName);
+    void botShootingAnimation(int row, int col, bool hit);
+    void botShoot(int row, int col);
 protected:
     void showEvent(QShowEvent *event) override;
     void contextMenuEvent(QContextMenuEvent* event) override;

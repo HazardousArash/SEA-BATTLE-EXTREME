@@ -28,6 +28,9 @@ public:
     void setAdjacenciesForBot(int id);
     void reset();
     void resetUnavailableCells();
+    int botAi(Board& myBoard, int& selectedRow, int& selectedCol);
+    bool allShipsSunken() const;
+    bool isShipSunk(int shipID) const;
 };
 
 #endif // BOARD_H

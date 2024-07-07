@@ -392,55 +392,72 @@ void Board::reset() {
         std::fill(row.begin(), row.end(), 0);
     }
 }
-int Board::botAi(int& selectedRow, int& selectedCol) {
+int Board::botAi(Board& myBoard, int& selectedRow, int& selectedCol) {
     selectedRow = QRandomGenerator::global()->bounded(rows);
     selectedCol = QRandomGenerator::global()->bounded(cols);
 
     qDebug() << "Bot selected (" << selectedRow << ", " << selectedCol << ")";
 
-    while (grid[selectedRow][selectedCol] < 0) {
+    // Ensure the bot selects a valid cell that hasn't been previously targeted
+    while (myBoard.grid[selectedRow][selectedCol] < 0) {
         selectedRow = QRandomGenerator::global()->bounded(rows);
         selectedCol = QRandomGenerator::global()->bounded(cols);
         qDebug() << "Bot reselected (" << selectedRow << ", " << selectedCol << ")";
     }
 
-    if (grid[selectedRow][selectedCol] == 0) {
-        grid[selectedRow][selectedCol] = -1;
+    int cellValue = myBoard.grid[selectedRow][selectedCol];
+    qDebug() << "Bot checking cell value at (" << selectedRow << ", " << selectedCol << "): " << cellValue;
+
+    if (cellValue == 0) {
+        myBoard.grid[selectedRow][selectedCol] = -1; // Mark as missed
         player2Turn = false;
         player1Turn = true;
         qDebug() << "Bot missed at (" << selectedRow << ", " << selectedCol << "). Switching to player 1's turn.";
         return -1; // Miss
-    } else if (grid[selectedRow][selectedCol] > 0) {
-        int shipID = grid[selectedRow][selectedCol];
-        grid[selectedRow][selectedCol] *= -1;
-        player2Turn = true;
-        player1Turn = false;
-        qDebug() << "Bot hit at (" << selectedRow << ", " << selectedCol << "). Bot gets another turn.";
+    } else if (cellValue > 0) {
+        int shipID = cellValue;
+        myBoard.grid[selectedRow][selectedCol] *= -1; // Mark as hit
+        qDebug() << "Bot hit at (" << selectedRow << ", " << selectedCol << "). Ship ID: " << shipID;
 
         // Check if the ship is sunk
         bool isSunk = true;
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
-                if (grid[i][j] == shipID) {
+        for (const auto& row : myBoard.grid) {
+            for (const auto& cell : row) {
+                if (cell == shipID) {
                     isSunk = false;
                     break;
                 }
             }
-        }
-        if (isSunk) {
-            qDebug() << "Bot sunk the ship with ID" << shipID << "at (" << selectedRow << ", " << selectedCol << ").";
-
-            // Check if all ships are sunk
-            if (allShipsSunken()) {
-                qDebug() << "Bot sunk all ships. Player has lost.";
-                return -2; // Special value indicating all ships are sunk
+            if (!isSunk) {
+                break;
             }
-            return shipID; // Sunk
         }
+
+        if (isSunk) {
+            qDebug() << "Bot sunk the ship with ID" << shipID << ".";
+            return -2; // Special value indicating ship is sunk
+        }
+        player2Turn = true; // Bot gets another turn
         return 1; // Hit
     }
+    qDebug() << "Unexpected state reached in botAi.";
     return 0; // Default case, shouldn't reach here
 }
+
+
+
+
+bool Board::isShipSunk(int shipID) const {
+    for (const auto& row : grid) {
+        for (int cell : row) {
+            if (cell == shipID) {
+                return false; // There is still an unhit part of the ship
+            }
+        }
+    }
+    return true; // All parts of the ship are hit
+}
+
 
 
 

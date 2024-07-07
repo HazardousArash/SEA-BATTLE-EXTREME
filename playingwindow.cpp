@@ -170,6 +170,7 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
 
     const std::vector<std::vector<int>>& grid = board->getGrid();
     int gridSize = grid.size();
+    qDebug() << "Updating grid for " << boardName << " with grid size " << gridSize;
 
     for (int id = 1; id <= 10; ++id) {
         std::vector<QPoint> shipBlocks;
@@ -218,16 +219,21 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
                 cellSize = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(minY).arg(minX))->size();
             }
 
+            qDebug() << "Processing ship ID " << id << " with icon name " << shipIconName << " and length " << shipLength;
+            qDebug() << "Ship blocks for ID " << id << ": " << shipBlocks;
+
             if (minY == maxY) {  // Horizontal ship
                 QTransform transform;
                 transform.rotate(90);
                 QSize iconSize(cellSize.width() * shipLength, cellSize.height());
                 shipPixmap = shipPixmap.transformed(transform);
                 shipPixmap = shipPixmap.scaled(iconSize, Qt::KeepAspectRatio);
+                qDebug() << "Ship is horizontal. Transformed pixmap size: " << iconSize;
             } else if (minX == maxX) {  // Vertical ship
                 QSize iconSize(cellSize.width(), cellSize.height() * shipLength);
                 QTransform transform;
                 shipPixmap = shipPixmap.transformed(transform).scaled(iconSize, Qt::KeepAspectRatio);
+                qDebug() << "Ship is vertical. Transformed pixmap size: " << iconSize;
             }
 
             ClickableLabel* cell;
@@ -241,17 +247,23 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
                 if (boardName == "enemyBoard" && modeChosen == 1) {
                     cell->setStyleSheet("border: 2px solid red;"); // Add red border for visualization
                     cell->setPixmap(QPixmap()); // Hide the pixmap
+                    qDebug() << "Setting cell at (" << minY << "," << minX << ") on enemyBoard to empty with red border.";
                 } else if (modeChosen == 2) {
                     cell->setStyleSheet("border: 2px solid red;"); // Add red border for visualization
                     cell->setPixmap(QPixmap()); // Hide the pixmap
+                    qDebug() << "Setting cell at (" << minY << "," << minX << ") on " << boardName << " to empty with red border.";
                 } else {
                     cell->setPixmap(shipPixmap);
+                    qDebug() << "Setting cell at (" << minY << "," << minX << ") on " << boardName << " with ship icon.";
                 }
                 cell->setFixedSize(QSize(cellSize.width() * (minY == maxY ? shipLength : 1), cellSize.height() * (minX == maxX ? shipLength : 1)));
+            } else {
+                qDebug() << "Cell at (" << minY << "," << minX << ") on " << boardName << " not found.";
             }
         }
     }
 }
+
 void PlayingWindow::clearShipBlockCrosses(int shipID) {
     const std::vector<std::vector<int>>& grid = enemyBoard->getGrid();
     for (int row = 0; row < grid.size(); ++row) {
@@ -309,7 +321,7 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
             if (ship) {
                 ship->decrementHitPoints();
                 if (ship->getHitPoints() == 0) {
-                    clearShipBlockCrosses(shipID, "myBoard");  // Clear crosses
+                    //clearShipBlockCrosses(shipID, "myBoard");  // Clear crosses
                     makeShipBlocksPurple(shipID, "myBoard");   // Mark blocks purple
                 }
             }
@@ -382,20 +394,37 @@ void PlayingWindow::clearShipBlockCrosses(int shipID, const QString& boardName) 
 
 void PlayingWindow::makeShipBlocksPurple(int shipID, const QString& boardName) {
     const std::vector<std::vector<int>>& grid = boardName == "myBoard" ? myBoard->getGrid() : enemyBoard->getGrid();
+    bool allPartsHit = true;
+
+    // First pass: Check if all parts of the ship are hit
     for (int row = 0; row < grid.size(); ++row) {
         for (int col = 0; col < grid[row].size(); ++col) {
-            if (grid[row][col] == -shipID) {
-                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
-                if (boardName == "enemyBoard") {
-                    cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
-                }
-                if (cell) {
-                    cell->setStyleSheet("background: rgba(128, 0, 128, 128); border: 1px solid gray;");  // Glassy purple color
+            if (grid[row][col] == shipID) {
+                allPartsHit = false;
+                break;
+            }
+        }
+        if (!allPartsHit) break;
+    }
+
+    // Second pass: If all parts are hit, mark them as purple
+    if (allPartsHit) {
+        for (int row = 0; row < grid.size(); ++row) {
+            for (int col = 0; col < grid[row].size(); ++col) {
+                if (grid[row][col] == -shipID) {
+                    ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+                    if (boardName == "enemyBoard") {
+                        cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+                    }
+                    if (cell) {
+                        cell->setStyleSheet("background: rgba(128, 0, 128, 128); border: 1px solid gray;");  // Glassy purple color
+                    }
                 }
             }
         }
     }
 }
+
 
 
 void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
@@ -430,7 +459,7 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             if (ship) {
                 ship->decrementHitPoints();
                 if (ship->getHitPoints() == 0) {
-                    clearShipBlockCrosses(shipID, "enemyBoard"); // Clear crosses
+                    //clearShipBlockCrosses(shipID, "enemyBoard"); // Clear crosses
                     makeShipBlocksPurple(shipID, "enemyBoard"); // Mark blocks purple
                 }
             }
@@ -475,7 +504,7 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             if (ship) {
                 ship->decrementHitPoints();
                 if (ship->getHitPoints() == 0) {
-                    clearShipBlockCrosses(shipID, "enemyBoard");  // Clear crosses
+                    //clearShipBlockCrosses(shipID, "enemyBoard");  // Clear crosses
                     makeShipBlocksPurple(shipID, "enemyBoard");   // Mark blocks purple
                 }
             }
@@ -619,4 +648,3 @@ void PlayingWindow::contextMenuEvent(QContextMenuEvent* event) {
 
     contextMenu.exec(event->globalPos());
 }
-
