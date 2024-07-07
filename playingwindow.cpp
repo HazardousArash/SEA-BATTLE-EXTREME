@@ -293,6 +293,7 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
                 cell->setEnabled(false);  // Make it unclickable
             }
             // Switch turns
+            qDebug() << "Player 2 missed. Switching to player 1's turn.";
             player1Turn = true;
             player2Turn = false;
         } else if (cellValue > 0) {
@@ -313,12 +314,23 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
                 }
             }
 
+            // Check if all ships of Player 1 are sunken
+            if (myBoard->allShipsSunken()) {
+                QMessageBox::information(this, "Game Over", "Player 2 wins!");
+                // Call new widget or reset the game
+                return;
+            }
+
             // Player gets a bonus shot, do not switch turns
+            qDebug() << "Player 2 hit a ship. Player 2 gets another turn.";
         }
+    } else if (modeChosen == 1) {
+        qDebug() << "Player tried to click on their own board in mode 1. Ignoring.";
     } else {
         qDebug() << "It's not player 2's turn!";
     }
 }
+
 
 void PlayingWindow::markSingleShipBlockWithCross(int row, int col) {
     ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
@@ -387,8 +399,53 @@ void PlayingWindow::makeShipBlocksPurple(int shipID, const QString& boardName) {
 
 
 void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
-    GameWindow *gameWindow = static_cast<GameWindow*>(parent());
-    if (player1Turn) {
+    if (modeChosen == 1 && player1Turn) { // Mode 1 logic
+        qDebug() << "Player clicked on enemyBoard at (" << row << ", " << col << ")";
+
+        int cellValue = enemyBoard->getCell(row, col);
+
+        if (cellValue == 0) {
+            enemyBoard->getGrid()[row][col] = -1;
+            markSingleShipBlockWithCross(row, col, "enemyBoard");
+            ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+            if (cell) {
+                cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;"); // Glassy red
+                cell->setEnabled(false); // Make it unclickable
+            }
+            // Switch turns
+            qDebug() << "Player missed. Switching to bot's turn.";
+            player1Turn = false;
+            player2Turn = true;
+            QTimer::singleShot(1000, gameWindow, &GameWindow::triggerBotTurn); // Call bot's turn
+        } else if (cellValue > 0) {
+            int shipID = cellValue;
+            enemyBoard->getGrid()[row][col] = -cellValue;
+            markSingleShipBlockWithCross(row, col, "enemyBoard");
+            ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+            if (cell) {
+                cell->setEnabled(false); // Make it unclickable
+            }
+
+            Ship* ship = Ship::getShipByID(shipID);
+            if (ship) {
+                ship->decrementHitPoints();
+                if (ship->getHitPoints() == 0) {
+                    clearShipBlockCrosses(shipID, "enemyBoard"); // Clear crosses
+                    makeShipBlocksPurple(shipID, "enemyBoard"); // Mark blocks purple
+                }
+            }
+
+            // Check if all ships of Player 2 are sunken
+            if (enemyBoard->allShipsSunken()) {
+                QMessageBox::information(this, "Game Over", "Player 1 wins!");
+                // Call new widget or reset the game
+                return;
+            }
+
+            // Player gets a bonus shot, do not switch turns
+            qDebug() << "Player hit a ship. Player gets another turn.";
+        }
+    } else if (modeChosen != 1 && player1Turn) { // Mode 2 logic
         qDebug() << "Player 1 clicked on enemyBoard at (" << row << ", " << col << ")";
 
         int cellValue = enemyBoard->getCell(row, col);
@@ -402,16 +459,9 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
                 cell->setEnabled(false);  // Make it unclickable
             }
             // Switch turns
-            if (modeChosen == 2) {
-                qDebug() << "Player 1 missed. Switching to player 2's turn.";
-                player1Turn = false;
-                player2Turn = true;
-            } else {
-                qDebug() << "Player 1 missed. Switching to bot's turn.";
-                player1Turn = false;
-                player2Turn = true;
-                QTimer::singleShot(1000, gameWindow, &GameWindow::triggerBotTurn);
-            }
+            qDebug() << "Player 1 missed. Switching to player 2's turn.";
+            player1Turn = false;
+            player2Turn = true;
         } else if (cellValue > 0) {
             int shipID = cellValue;
             enemyBoard->getGrid()[row][col] = -cellValue;
@@ -430,6 +480,13 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
                 }
             }
 
+            // Check if all ships of Player 2 are sunken
+            if (enemyBoard->allShipsSunken()) {
+                QMessageBox::information(this, "Game Over", "Player 1 wins!");
+                // Call new widget or reset the game
+                return;
+            }
+
             // Player gets a bonus shot, do not switch turns
             qDebug() << "Player 1 hit a ship. Player 1 gets another turn.";
         }
@@ -437,6 +494,7 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
         qDebug() << "It's not player 1's turn!";
     }
 }
+
 
 
 

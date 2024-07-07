@@ -27,9 +27,10 @@ GameWindow::GameWindow(QWidget *parent)
     : QWidget(parent),
     ui(new Ui::GameWindow),
     playingWindow(nullptr),
+    myBoard(new Board()),  // Ensure myBoard is initialized
+    enemyBoard(new Board()),  // Ensure enemyBoard is initialized
     player1Turn(true),  // Player 1 starts
-    player2Turn(false)  // Player 2 (bot) doesn't start
-{
+    player2Turn(false) { // Player 2 (bot) doesn't start
     ui->setupUi(this);
     initializeFleet();
     setupGridBackground();
@@ -39,6 +40,7 @@ GameWindow::GameWindow(QWidget *parent)
     connect(ui->nextButton, &QPushButton::clicked, this, &GameWindow::onNextButtonClicked);
     connect(this, &GameWindow::secondPlayerSetupComplete, this, &GameWindow::showPlayingWindow);
 }
+
 
 
 
@@ -157,6 +159,8 @@ void GameWindow::triggerBotTurn() {
         // Reflect changes on myBoard
         if (myBoard) {
             myBoard->getGrid() = board.getGrid(); // Copy the grid state
+            qDebug() << "myBoard grid size: " << myBoard->getGrid().size();
+            qDebug() << "board grid size: " << board.getGrid().size();
         }
 
         // Update the playing window to reflect the bot's move
@@ -173,6 +177,10 @@ void GameWindow::triggerBotTurn() {
                 qDebug() << "Bot missed. Switching to player 1's turn.";
                 player1Turn = true;
                 player2Turn = false; // Switch back to player's turn
+            } else if (result == -2) { // All ships sunk
+                QMessageBox::information(this, "Game Over", "You have lost. The bot sunk all your ships.");
+                // Call new widget or reset the game
+                return;
             } else if (result > 0) { // Hit or Sunk
                 int shipID = result;
                 Ship* ship = Ship::getShipByID(shipID);
@@ -200,7 +208,6 @@ void GameWindow::triggerBotTurn() {
         }
     }
 }
-
 
 
 

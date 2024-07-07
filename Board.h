@@ -29,7 +29,7 @@ public:
     void reset();
     void resetUnavailableCells();
     int botAi(int& selectedRow, int& selectedCol);
-
+    bool allShipsSunken() const;
 };
 
 #endif // BOARD_H

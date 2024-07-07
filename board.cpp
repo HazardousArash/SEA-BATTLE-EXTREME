@@ -5,6 +5,7 @@
 #include "globalVariables.h"
 const int rows=10;
 const int cols=10;
+
 Board::Board(int size) : size(size) {
     grid.resize(size, std::vector<int>(size, 0));
 }
@@ -12,8 +13,19 @@ Board::Board(int size) : size(size) {
 Board::Board(const Board& other) : size(other.size), grid(other.grid) { // Copy constructor
 }
 
+
 std::vector<std::vector<int>>& Board::getGrid() {
     return grid;  // Return the grid
+}
+bool Board::allShipsSunken() const {
+    for (const auto& row : grid) {
+        for (int cell : row) {
+            if (cell > 0) {
+                return false; // There is at least one ship part that is not sunken
+            }
+        }
+    }
+    return true;
 }
 
 
@@ -384,9 +396,12 @@ int Board::botAi(int& selectedRow, int& selectedCol) {
     selectedRow = QRandomGenerator::global()->bounded(rows);
     selectedCol = QRandomGenerator::global()->bounded(cols);
 
+    qDebug() << "Bot selected (" << selectedRow << ", " << selectedCol << ")";
+
     while (grid[selectedRow][selectedCol] < 0) {
         selectedRow = QRandomGenerator::global()->bounded(rows);
         selectedCol = QRandomGenerator::global()->bounded(cols);
+        qDebug() << "Bot reselected (" << selectedRow << ", " << selectedCol << ")";
     }
 
     if (grid[selectedRow][selectedCol] == 0) {
@@ -414,12 +429,21 @@ int Board::botAi(int& selectedRow, int& selectedCol) {
         }
         if (isSunk) {
             qDebug() << "Bot sunk the ship with ID" << shipID << "at (" << selectedRow << ", " << selectedCol << ").";
+
+            // Check if all ships are sunk
+            if (allShipsSunken()) {
+                qDebug() << "Bot sunk all ships. Player has lost.";
+                return -2; // Special value indicating all ships are sunk
+            }
             return shipID; // Sunk
         }
         return 1; // Hit
     }
     return 0; // Default case, shouldn't reach here
 }
+
+
+
 
 
 
