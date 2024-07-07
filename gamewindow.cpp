@@ -84,8 +84,19 @@ void GameWindow::onNextButtonClicked() {
             Board* enemyBoard = new Board();
             enemyBoard->shuffleBoard();
             board.resetUnavailableCells();
-
+            *myBoard=board;
+            player1Board=board;
             playingWindow = new PlayingWindow(this, this, &board, enemyBoard, &themeManager);
+        }
+
+        // Debug: Verify ship placement on myBoard
+        qDebug() << "Ship placement on myBoard before bot turn:";
+        for (const auto& row : myBoard->getGrid()) {
+            QString rowString;
+            for (int cell : row) {
+                rowString += QString::number(cell) + " ";
+            }
+            qDebug() << rowString;
         }
 
         this->hide(); // Hide the current window
@@ -102,7 +113,6 @@ void GameWindow::onNextButtonClicked() {
         QTimer::singleShot(1000, this, &GameWindow::triggerBotTurn);
     } else if (modeChosen == 2) { // 1vs1 mode
         if (isSecondPlayerSettingUp) {
-            // If this is the second player's turn to set up
             qDebug() << "Second player finished setting up";
             player2Board = board; // Store the second player's board in player2Board
             player1Board.resetUnavailableCells();
@@ -149,6 +159,7 @@ void GameWindow::onNextButtonClicked() {
         }
     }
 }
+
 void GameWindow::triggerBotTurn() {
     if (modeChosen == 1) { // Versus Bot mode
         qDebug() << "Bot's turn to play.";
@@ -185,6 +196,7 @@ void GameWindow::triggerBotTurn() {
             }
 
             if (result == -1) { // Miss
+                qDebug() << "Marking missed block with cross.";
                 playingWindow->markSingleShipBlockWithCross(selectedRow, selectedCol, "myBoard");
                 ClickableLabel* cell = playingWindow->findChild<ClickableLabel*>(QString("cell_%1_%2").arg(selectedRow).arg(selectedCol));
                 if (cell) {
@@ -195,6 +207,7 @@ void GameWindow::triggerBotTurn() {
                 player1Turn = true;
                 player2Turn = false; // Switch back to player's turn
             } else if (result == 1) { // Hit
+                qDebug() << "Marking hit block with cross.";
                 int shipID = -myBoard->getCell(selectedRow, selectedCol);
                 qDebug() << "Bot hit ship part. Ship ID: " << shipID;
                 Ship* ship = Ship::getShipByID(shipID);
@@ -207,6 +220,7 @@ void GameWindow::triggerBotTurn() {
                     }
 
                     if (ship->getHitPoints() == 0) {
+                        qDebug() << "Ship is sunk.";
                         playingWindow->clearShipBlockCrosses(shipID, "myBoard");
                         playingWindow->makeShipBlocksPurple(shipID, "myBoard");
                     }
@@ -215,10 +229,35 @@ void GameWindow::triggerBotTurn() {
                 // Bot gets another turn if it hits a ship
                 QTimer::singleShot(1000, this, &GameWindow::triggerBotTurn);
             } else if (result == -2) { // Ship sunk
+                qDebug() << "Marking sunk ship blocks.";
                 int shipID = -myBoard->getCell(selectedRow, selectedCol);
                 playingWindow->makeShipBlocksPurple(shipID, "myBoard");
                 qDebug() << "Bot sunk the ship. Bot gets another turn.";
                 QTimer::singleShot(1000, this, &GameWindow::triggerBotTurn); // Bot gets another turn if it sinks a ship
+            } else if (result == -3) { // All ships sunk
+                qDebug() << "All ships sunk. Checking for any remaining positive values.";
+
+                // Check if there are any positive numbers in myBoard
+                bool hasPositive = false;
+                for (const auto& row : myBoard->getGrid()) {
+                    for (int cell : row) {
+                        if (cell > 0) {
+                            hasPositive = true;
+                            break;
+                        }
+                    }
+                    if (hasPositive) {
+                        break;
+                    }
+                }
+
+                // Show lose window if no positive numbers are found
+                if (!hasPositive) {
+                    qDebug() << "No positive values found. Player loses.";
+                    playingWindow->showLoseWindow(); // Show lose window when player loses
+                } else {
+                    qDebug() << "Positive values found. Game continues.";
+                }
             } else {
                 qDebug() << "Bot's turn ended. Switching to player 1's turn.";
                 player1Turn = true;
@@ -227,10 +266,6 @@ void GameWindow::triggerBotTurn() {
         }
     }
 }
-
-
-
-
 
 
 void GameWindow::showPlayingWindow() {
@@ -274,7 +309,7 @@ void GameWindow::setupGridBackground() {
             ReleasableLabel* cell = new ReleasableLabel(ui->gridBackgroundLabel);
             cell->setGeometry(static_cast<int>(-2+ i * cellSizeX), static_cast<int>(j * cellSizeY),
                               static_cast<int>(cellSizeX), static_cast<int>(cellSizeY));
-            cell->setStyleSheet("border: none; background: transparent;");
+            cell->setStyleSheet("border:1px solid gray; background: transparent;");
             cell->setObjectName(QString("cell_%1_%2").arg(j).arg(i));  // Swapped i and j
             cell->installEventFilter(this);
             cell->setMouseTracking(true);  // Enable mouse tracking
@@ -303,20 +338,20 @@ void GameWindow::handleShipDrop(DraggableButton* button) {
     switch (currentShip.getLength())
     {
     case 1:
-         x = qBound(0, pos.x() / cellSizeX, gridSize);
-         y = qBound(0, pos.y() / cellSizeY, gridSize );
+        x = qBound(0, pos.x() / cellSizeX, gridSize);
+        y = qBound(0, pos.y() / cellSizeY, gridSize );
         break;
     case 2:
-         x = qBound(0, pos.x() / cellSizeX, gridSize );
-         y = qBound(0, pos.y() / cellSizeY, gridSize );
+        x = qBound(0, pos.x() / cellSizeX, gridSize );
+        y = qBound(0, pos.y() / cellSizeY, gridSize );
         break;
     case 3:
-         x = qBound(0, pos.x() / cellSizeX, gridSize );
-         y = qBound(0, pos.y() / cellSizeY, gridSize );
+        x = qBound(0, pos.x() / cellSizeX, gridSize );
+        y = qBound(0, pos.y() / cellSizeY, gridSize );
         break;
     case 4:
-         x = qBound(0, pos.x() / cellSizeX, gridSize );
-         y = qBound(0, pos.y() / cellSizeY, gridSize );
+        x = qBound(0, pos.x() / cellSizeX, gridSize );
+        y = qBound(0, pos.y() / cellSizeY, gridSize );
         break;
     }
 
@@ -470,23 +505,23 @@ bool GameWindow::eventFilter(QObject* obj, QEvent* event) {
         if (cell) {
             highlightAvailableBlocks();
 
-          //  int cellSize = 591/10;
-           // int x = (cell->x() - 80) / cellSize;
+            //  int cellSize = 591/10;
+            // int x = (cell->x() - 80) / cellSize;
             //int y = (cell->y() - 70) / cellSize;
-           // qDebug() << "cellX=" << cell->x();
+            // qDebug() << "cellX=" << cell->x();
             //qDebug() << "cellY=" << cell->y();
 
             // Check if the ship can be placed without actually placing it
             //if (board.canPlaceShip(currentShip, x, y)) {
-                //cell->setStyleSheet("background: green;");
+            //cell->setStyleSheet("background: green;");
             //} else {
-                //cell->setStyleSheet("background: red;");
+            //cell->setStyleSheet("background: red;");
             //}
-        //}
-        return true;  // Event handled
+            //}
+            return true;  // Event handled
+        }
+        return false;  // Event not handled, pass it on
     }
-    return false;  // Event not handled, pass it on
-}
 }
 
 
@@ -581,6 +616,29 @@ void GameWindow::switchToTheme2() {
     setupGridBackground();
     setupIcons();
     setupTable();
+}
+
+void GameWindow::resetGame() {
+    // Clear the board
+    for (auto& row : board.getGrid()) {
+        for (auto& cell : row) {
+            cell = 0;  // Set each cell to 0
+        }
+    }
+
+    // Delete existing ships and buttons
+    qDeleteAll(ships);
+    ships.clear();
+
+    for (auto button : findChildren<DraggableButton*>()) {
+        button->deleteLater();
+    }
+
+    // Reinitialize the fleet
+    Ship::resetIDCounter();
+    initializeFleet();
+    shipBlockCoordinates.clear();
+    qDebug() << "Game reset.";
 }
 
 

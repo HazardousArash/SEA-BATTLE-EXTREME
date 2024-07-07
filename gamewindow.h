@@ -38,7 +38,8 @@ public:
     bool player1Turn;
     bool player2Turn;
     void triggerBotTurn();
-
+    void replacer();
+    void populateShipBlockCoordinates();
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
@@ -58,7 +59,7 @@ private:
     void placeShipOnBoard(int x, int y);
     QVector<QVector<QLabel*>> labelGrid;
     DraggableButton* currentShipButton = nullptr;
-
+    std::vector<QPoint> shipBlockCoordinates;
     void showPlayingWindow();
 
 private slots:

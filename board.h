@@ -4,7 +4,7 @@
 #include "ship.h"
 #include "player.h"
 #include "computerplayer.h"
-
+#include <QObject>
 // Forward declaration
 class computerPlayer;
 
@@ -31,6 +31,10 @@ public:
     int botAi(Board& myBoard, int& selectedRow, int& selectedCol);
     bool allShipsSunken() const;
     bool isShipSunk(int shipID) const;
+    bool isBotFirstMove = true;
+    std::vector<std::vector<int>> multiplyBoards(const Board& other);
+signals:
+    void gameOver();
 };
 
 #endif // BOARD_H

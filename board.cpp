@@ -3,8 +3,20 @@
 #include <qdebug.h>
 #include <qrandom.h>
 #include "globalVariables.h"
+#include "playingwindow.h"
 const int rows=10;
 const int cols=10;
+std::vector<std::vector<int>> Board::multiplyBoards(const Board& other) {
+    int size = grid.size();
+    std::vector<std::vector<int>> result(size, std::vector<int>(size, 0));
+
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+            result[i][j] = grid[i][j] * other.grid[i][j];
+        }
+    }
+    return result;
+}
 
 Board::Board(int size) : size(size) {
     grid.resize(size, std::vector<int>(size, 0));
@@ -393,21 +405,26 @@ void Board::reset() {
     }
 }
 int Board::botAi(Board& myBoard, int& selectedRow, int& selectedCol) {
-    selectedRow = QRandomGenerator::global()->bounded(rows);
-    selectedCol = QRandomGenerator::global()->bounded(cols);
-
-    qDebug() << "Bot selected (" << selectedRow << ", " << selectedCol << ")";
-
-    // Ensure the bot selects a valid cell that hasn't been previously targeted
-    while (myBoard.grid[selectedRow][selectedCol] < 0) {
+    if (isBotFirstMove) {
+        selectedRow = 0;
+        selectedCol = 0;
+        isBotFirstMove = false;
+    } else {
         selectedRow = QRandomGenerator::global()->bounded(rows);
         selectedCol = QRandomGenerator::global()->bounded(cols);
-        qDebug() << "Bot reselected (" << selectedRow << ", " << selectedCol << ")";
+
+        // Ensure the bot selects a valid cell that hasn't been previously targeted
+        while (myBoard.grid[selectedRow][selectedCol] < 0) {
+            selectedRow = QRandomGenerator::global()->bounded(rows);
+            selectedCol = QRandomGenerator::global()->bounded(cols);
+            qDebug() << "Bot reselected (" << selectedRow << ", " << selectedCol << ")";
+        }
     }
 
+    qDebug() << "Bot selected (" << selectedRow << ", " << selectedCol << ")";
     int cellValue = myBoard.grid[selectedRow][selectedCol];
     qDebug() << "Bot checking cell value at (" << selectedRow << ", " << selectedCol << "): " << cellValue;
-
+    qDebug() << cellValue;
     if (cellValue == 0) {
         myBoard.grid[selectedRow][selectedCol] = -1; // Mark as missed
         player2Turn = false;
@@ -435,17 +452,21 @@ int Board::botAi(Board& myBoard, int& selectedRow, int& selectedCol) {
 
         if (isSunk) {
             qDebug() << "Bot sunk the ship with ID" << shipID << ".";
+
+            // Check if all ships are sunken
+            if (myBoard.allShipsSunken()) {
+                qDebug() << "All ships are sunken. Player loses.";
+                return -3; // Special value indicating all ships are sunk
+            }
             return -2; // Special value indicating ship is sunk
         }
         player2Turn = true; // Bot gets another turn
+        qDebug() << "Bot clicked on ship block at (" << selectedRow << ", " << selectedCol << ")."; // Debug message
         return 1; // Hit
     }
     qDebug() << "Unexpected state reached in botAi.";
     return 0; // Default case, shouldn't reach here
 }
-
-
-
 
 bool Board::isShipSunk(int shipID) const {
     for (const auto& row : grid) {
@@ -457,23 +478,3 @@ bool Board::isShipSunk(int shipID) const {
     }
     return true; // All parts of the ship are hit
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

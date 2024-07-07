@@ -3,7 +3,7 @@
 #include <qtimer.h>
 #include "ship.h"
 #include <algorithm>
-
+#include "globalVariables.h"
 int rotateCounter = 0;
 
 DraggableButton::DraggableButton(const QIcon& icon, Ship& ship, QWidget* parent)
@@ -77,28 +77,7 @@ void DraggableButton::mousePressEvent(QMouseEvent* event) {
     }
 }
 
-void GameWindow::resetGame() {
-    // Clear the board
-    for (auto& row : board.getGrid()) {
-        for (auto& cell : row) {
-            cell = 0;  // Set each cell to 0
-        }
-    }
 
-    // Delete existing ships and buttons
-    qDeleteAll(ships);
-    ships.clear();
-
-    for (auto button : findChildren<DraggableButton*>()) {
-        button->deleteLater();
-    }
-
-    // Reinitialize the fleet
-    Ship::resetIDCounter();
-    initializeFleet();
-
-    qDebug() << "Game reset.";
-}
 
 void DraggableButton::mouseReleaseEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton && dragging) {
@@ -139,6 +118,13 @@ void DraggableButton::mouseReleaseEvent(QMouseEvent* event) {
                     ship.setStartX(startX);
                     ship.setStartY(startY);
 
+                    // Populate shipBlockCoordinates
+                    for (int i = 0; i < ship.getLength(); ++i) {
+                        int x = startX + (ship.getIsFlipped() ? 0 : i);
+                        int y = startY - (ship.getIsFlipped() ? i : 0);
+                        shipBlockCoordinates.append(QPoint(x, y));
+                    }
+
                     setButtonEnabled(false); // Disable the button but maintain its appearance
                 } else {
                     gameWindow->resetGame(); // Reset the game if released outside
@@ -154,6 +140,7 @@ void DraggableButton::mouseReleaseEvent(QMouseEvent* event) {
         event->ignore();
     }
 }
+
 
 void DraggableButton::keyPressEvent(QKeyEvent* event) {
     if (event->key() == Qt::Key_R && canDrag) {

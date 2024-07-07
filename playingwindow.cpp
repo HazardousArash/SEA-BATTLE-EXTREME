@@ -33,6 +33,8 @@ PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myB
 
     updateGridWithBoardState(this->myBoard, "myBoard"); // Update the grid with the current board state
     updateGridWithBoardState(this->enemyBoard, "enemyBoard"); // Update the enemy grid with the current board state
+   //connect(myBoard, &Board::gameOver, this, &PlayingWindow::showLoseWindow);
+
 
     if (this->myBoard) {
         qDebug() << "My Board size:" << this->myBoard->getGrid().size();
@@ -74,6 +76,26 @@ void PlayingWindow::setupGifBackground() {
 
     qDebug() << "GIF background setup completed.";
 }
+void PlayingWindow::markShipBlockWithHitIndicator(int row, int col, const QString& boardName) {
+    ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+    if (boardName == "enemyBoard") {
+        cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+    }
+
+    if (cell) {
+        // Create a label with "20" text
+        QLabel* hitLabel = new QLabel("SHOT!", cell);
+        hitLabel->setAlignment(Qt::AlignCenter);
+        hitLabel->setStyleSheet("color: white; background-color: rgba(255, 0, 0, 128); border: 1px solid gray;");
+        hitLabel->setGeometry(0, 0, cell->width(), cell->height());
+        hitLabel->show();
+        qDebug() << "ouwwwwwwwwwwwwwwwww";
+    } else {
+        qDebug() << "Error: ClickableLabel not found for (" << row << ", " << col << ") on " << boardName;
+    }
+}
+
+
 
 void PlayingWindow::setupGridBackground() {
     qDebug() << "Entering setupGridBackground...";
@@ -162,6 +184,24 @@ void PlayingWindow::setupGridBackground() {
 
 
 
+void PlayingWindow::showLoseWindow() {
+    QWidget* loseWindow = new QWidget();
+    loseWindow->setWindowTitle("Game Over");
+    loseWindow->setFixedSize(300, 200);
+    QVBoxLayout* layout = new QVBoxLayout(loseWindow);
+
+    QLabel* message = new QLabel("You lost all your ships!", loseWindow);
+    message->setAlignment(Qt::AlignCenter);
+    layout->addWidget(message);
+
+    QPushButton* closeButton = new QPushButton("Close", loseWindow);
+    layout->addWidget(closeButton);
+
+    connect(closeButton, &QPushButton::clicked, loseWindow, &QWidget::close);
+    loseWindow->show();
+}
+
+
 void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardName) {
     if (!board) {
         qDebug() << boardName << " is not initialized!";
@@ -191,6 +231,10 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
                 minY = std::min(minY, point.y());
                 maxX = std::max(maxX, point.x());
                 maxY = std::max(maxY, point.y());
+            }
+
+            if ((modeChosen == 1 && boardName == "enemyBoard") || modeChosen == 2 || (modeChosen == 1 && boardName == "myBoard")) {
+                continue; // Skip displaying ship icons for enemyBoard in mode 1, both boards in mode 2, and myBoard in mode 1
             }
 
             QString shipIconName;
@@ -244,25 +288,77 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
             }
 
             if (cell) {
-                if (boardName == "enemyBoard" && modeChosen == 1) {
-                    cell->setStyleSheet("border: 2px solid red;"); // Add red border for visualization
-                    cell->setPixmap(QPixmap()); // Hide the pixmap
-                    qDebug() << "Setting cell at (" << minY << "," << minX << ") on enemyBoard to empty with red border.";
-                } else if (modeChosen == 2) {
-                    cell->setStyleSheet("border: 2px solid red;"); // Add red border for visualization
-                    cell->setPixmap(QPixmap()); // Hide the pixmap
-                    qDebug() << "Setting cell at (" << minY << "," << minX << ") on " << boardName << " to empty with red border.";
-                } else {
-                    cell->setPixmap(shipPixmap);
-                    qDebug() << "Setting cell at (" << minY << "," << minX << ") on " << boardName << " with ship icon.";
-                }
+                cell->setPixmap(shipPixmap);
+                cell->setStyleSheet("border: none;");
+                qDebug() << "Setting cell at (" << minY << "," << minX << ") on " << boardName << " with ship icon and red border.";
                 cell->setFixedSize(QSize(cellSize.width() * (minY == maxY ? shipLength : 1), cellSize.height() * (minX == maxX ? shipLength : 1)));
             } else {
                 qDebug() << "Cell at (" << minY << "," << minX << ") on " << boardName << " not found.";
             }
         }
     }
+
+    // Apply red borders for hits and misses
+    for (int j = 0; j < gridSize; ++j) {
+        for (int i = 0; i < gridSize; ++i) {
+            int cellValue = grid[j][i];
+            ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(j).arg(i));
+            if (boardName == "enemyBoard") {
+                cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(j).arg(i));
+            }
+
+            if (cell) {
+                if (cellValue == -1) {
+                    // Missed shots
+                    cell->setStyleSheet("border: none; background: rgba(255, 0, 0, 0.5);"); // Glassy red
+                } else if (cellValue < -1) {
+                    // Hit shots
+                    cell->setStyleSheet("border: none; background: rgba(255, 0, 0, 0.5);"); // Glassy red
+                } else if (cellValue > 0) {
+                    // Ships with no hit
+                    if (modeChosen == 1 && boardName == "myBoard") {
+                        cell->setStyleSheet("border: 2px solid red; background: transparent;");
+                    } else if (modeChosen == 2) {
+                        cell->setPixmap(QPixmap());
+                        cell->setStyleSheet("border: 1px solid gray; background: transparent;");
+                    }
+                } else {
+                    cell->setPixmap(QPixmap());
+                    cell->setStyleSheet("border: 1px solid gray; background: transparent;");
+                }
+            }
+        }
+    }
+
+    // Hide ships and remove borders for enemyBoard in mode 1
+    if (modeChosen == 1 && boardName == "enemyBoard") {
+        for (int j = 0; j < gridSize; ++j) {
+            for (int i = 0; i < gridSize; ++i) {
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(j).arg(i));
+                if (cell) {
+                    cell->setPixmap(QPixmap());
+                    cell->setStyleSheet("border: 1px solid gray; background: transparent;");
+                }
+            }
+        }
+    }
+
+    // Hide ship pixmaps for myBoard in mode 1 but keep red borders
+    if (modeChosen == 1 && boardName == "myBoard") {
+        for (int j = 0; j < gridSize; ++j) {
+            for (int i = 0; i < gridSize; ++i) {
+                int cellValue = grid[j][i];
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(j).arg(i));
+                if (cellValue > 0 && cell) {
+                    cell->setPixmap(QPixmap());
+                }
+            }
+        }
+    }
 }
+
+
+
 
 void PlayingWindow::clearShipBlockCrosses(int shipID) {
     const std::vector<std::vector<int>>& grid = enemyBoard->getGrid();
@@ -312,6 +408,7 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
             int shipID = cellValue;
             myBoard->getGrid()[row][col] = -cellValue;
             markSingleShipBlockWithCross(row, col, "myBoard");
+            markSingleShipBlockWithCross( row,  col, "myBoard"); // Add this line to mark the block
             ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
             if (cell) {
                 cell->setEnabled(false);  // Make it unclickable
@@ -321,7 +418,6 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
             if (ship) {
                 ship->decrementHitPoints();
                 if (ship->getHitPoints() == 0) {
-                    //clearShipBlockCrosses(shipID, "myBoard");  // Clear crosses
                     makeShipBlocksPurple(shipID, "myBoard");   // Mark blocks purple
                 }
             }
@@ -329,7 +425,7 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
             // Check if all ships of Player 1 are sunken
             if (myBoard->allShipsSunken()) {
                 QMessageBox::information(this, "Game Over", "Player 2 wins!");
-                // Call new widget or reset the game
+                showLoseWindow(); // Show the lose window when player loses
                 return;
             }
 
@@ -342,6 +438,10 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
         qDebug() << "It's not player 2's turn!";
     }
 }
+
+
+
+
 
 
 void PlayingWindow::markSingleShipBlockWithCross(int row, int col) {
@@ -450,6 +550,7 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             int shipID = cellValue;
             enemyBoard->getGrid()[row][col] = -cellValue;
             markSingleShipBlockWithCross(row, col, "enemyBoard");
+            markSingleShipBlockWithCross(row, col, "enemyBoard"); // Add this line to mark the block
             ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
             if (cell) {
                 cell->setEnabled(false); // Make it unclickable
@@ -459,7 +560,6 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             if (ship) {
                 ship->decrementHitPoints();
                 if (ship->getHitPoints() == 0) {
-                    //clearShipBlockCrosses(shipID, "enemyBoard"); // Clear crosses
                     makeShipBlocksPurple(shipID, "enemyBoard"); // Mark blocks purple
                 }
             }
@@ -467,7 +567,6 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             // Check if all ships of Player 2 are sunken
             if (enemyBoard->allShipsSunken()) {
                 QMessageBox::information(this, "Game Over", "Player 1 wins!");
-                // Call new widget or reset the game
                 return;
             }
 
@@ -495,6 +594,7 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             int shipID = cellValue;
             enemyBoard->getGrid()[row][col] = -cellValue;
             markSingleShipBlockWithCross(row, col, "enemyBoard");
+            markSingleShipBlockWithCross(row, col, "enemyBoard"); // Add this line to mark the block
             ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
             if (cell) {
                 cell->setEnabled(false);  // Make it unclickable
@@ -504,7 +604,6 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             if (ship) {
                 ship->decrementHitPoints();
                 if (ship->getHitPoints() == 0) {
-                    //clearShipBlockCrosses(shipID, "enemyBoard");  // Clear crosses
                     makeShipBlocksPurple(shipID, "enemyBoard");   // Mark blocks purple
                 }
             }
@@ -512,7 +611,6 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             // Check if all ships of Player 2 are sunken
             if (enemyBoard->allShipsSunken()) {
                 QMessageBox::information(this, "Game Over", "Player 1 wins!");
-                // Call new widget or reset the game
                 return;
             }
 
@@ -523,8 +621,6 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
         qDebug() << "It's not player 1's turn!";
     }
 }
-
-
 
 
 
@@ -648,3 +744,4 @@ void PlayingWindow::contextMenuEvent(QContextMenuEvent* event) {
 
     contextMenu.exec(event->globalPos());
 }
+

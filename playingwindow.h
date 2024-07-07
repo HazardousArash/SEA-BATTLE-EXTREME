@@ -26,6 +26,8 @@ public:
     void markSingleShipBlockWithCross(int row, int col, const QString& boardName);
     void botShootingAnimation(int row, int col, bool hit);
     void botShoot(int row, int col);
+    void markShipBlockWithHitIndicator(int row, int col, const QString& boardName);
+
 protected:
     void showEvent(QShowEvent *event) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
@@ -51,6 +53,7 @@ private slots:
 public slots:
     //void clearShipBlockCrosses(int shipID);
     void makeShipBlocksPurple(int shipID, const QString& boardName);
+    void showLoseWindow();
 };
 
 #endif // PLAYINGWINDOW_H
