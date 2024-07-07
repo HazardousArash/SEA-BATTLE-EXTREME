@@ -22,8 +22,8 @@ font: italic 18pt &quot;Segoe UI&quot;;
    <widget class="QLabel" name="welcomeLabel">
     <property name="geometry">
      <rect>
-      <x>230</x>
-      <y>50</y>
+      <x>220</x>
+      <y>20</y>
       <width>277</width>
       <height>151</height>
      </rect>
@@ -51,8 +51,8 @@ font: italic 18pt &quot;Segoe UI&quot;;
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>218</x>
-      <y>210</y>
+      <x>210</x>
+      <y>160</y>
       <width>291</width>
       <height>131</height>
      </rect>

@@ -61,7 +61,7 @@ bool isValidRegexSecurityKey(string input)
 
 void singU::on_pushButton_clicked()
 {
-         QErrorMessage* errorDialog = new QErrorMessage(this);
+    QErrorMessage* errorDialog = new QErrorMessage(this);
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("G:\\oldDesktop\\programing\\newS\\UNI\\402-403-AP\\QTFiles\\loginPage\\newDB.db");
     if (!db.open()) {
@@ -106,7 +106,7 @@ void singU::on_pushButton_clicked()
             return ;
         }
 
-        insertQuery.prepare("INSERT INTO users (username, password,firstName,lastName,email,securityKey,points,rank,theme1,theme2,theme3,ach1,ach2,ach3) VALUES (:username,:password,:firstName,:lastName,:email,:securityKey,:points,:rank,:theme1,:theme2,:theme3,:ach1,:ach2,:ach3)");
+        insertQuery.prepare("INSERT INTO users (username, password,firstName,lastName,email,securityKey,points,rank,win,lose,theme1,theme2,theme3,ach1,ach2,ach3) VALUES (:username,:password,:firstName,:lastName,:email,:securityKey,:points,:rank,:win,:lose,:theme1,:theme2,:theme3,:ach1,:ach2,:ach3)");
         QString userPass=ui->passLine->text();
         userPass=hashPasswordAgain(userPass);
         QString securityKeyHash=ui->SkeyLine->text();
@@ -120,6 +120,8 @@ void singU::on_pushButton_clicked()
         insertQuery.bindValue(":securityKey",securityKeyHash);
         insertQuery.bindValue(":points",0);
         insertQuery.bindValue(":rank",1);
+        insertQuery.bindValue(":win",0);
+        insertQuery.bindValue(":lose",0);
         insertQuery.bindValue(":theme1",0);
         insertQuery.bindValue(":theme2",0);
         insertQuery.bindValue(":theme3",0);
@@ -130,15 +132,16 @@ void singU::on_pushButton_clicked()
         if (insertQuery.exec()) {
 
             qDebug() << "Data inserted successfully!";
-errorDialog->showMessage("Sign up was successful");
+            MainWindow *newwindow=new MainWindow();
+            this->close();
+            newwindow->show();
+            errorDialog->showMessage("Sign up was successful");
         } else {
             qDebug() << "Error inserting data: ";
             errorDialog->showMessage("Sign up failed");
         }
     }
-
 }
-
 void singU::on_pushButton_2_clicked()
 {
     MainWindow *newwindow=new MainWindow();

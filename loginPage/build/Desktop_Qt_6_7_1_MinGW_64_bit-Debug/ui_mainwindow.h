@@ -52,7 +52,7 @@ public:
         centralwidget->setObjectName("centralwidget");
         welcomeLabel = new QLabel(centralwidget);
         welcomeLabel->setObjectName("welcomeLabel");
-        welcomeLabel->setGeometry(QRect(230, 50, 277, 151));
+        welcomeLabel->setGeometry(QRect(220, 20, 277, 151));
         QFont font;
         font.setFamilies({QString::fromUtf8("Segoe UI")});
         font.setPointSize(18);
@@ -65,7 +65,7 @@ public:
         welcomeLabel->setAlignment(Qt::AlignCenter);
         gridLayoutWidget = new QWidget(centralwidget);
         gridLayoutWidget->setObjectName("gridLayoutWidget");
-        gridLayoutWidget->setGeometry(QRect(218, 210, 291, 131));
+        gridLayoutWidget->setGeometry(QRect(210, 160, 291, 131));
         gridLayout = new QGridLayout(gridLayoutWidget);
         gridLayout->setObjectName("gridLayout");
         gridLayout->setContentsMargins(0, 0, 0, 0);

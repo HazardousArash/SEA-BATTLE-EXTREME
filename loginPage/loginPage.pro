@@ -12,13 +12,17 @@ SOURCES += \
     forgetpassword.cpp \
     main.cpp \
     mainwindow.cpp \
-    singu.cpp
+    playermenu.cpp \
+    singu.cpp \
+    statsmenu.cpp
 
 
 HEADERS += \
     forgetpassword.h \
     mainwindow.h \
-    singu.h
+    playermenu.h \
+    singu.h \
+    statsmenu.h
 
 QT += sql
 
@@ -26,7 +30,9 @@ QT += sql
 FORMS += \
     forgetpassword.ui \
     mainwindow.ui \
-    singu.ui
+    playermenu.ui \
+    singu.ui \
+    statsmenu.ui
 
 FORMS +=
 

@@ -125,7 +125,7 @@ public:
         label_3->setText(QCoreApplication::translate("forgetPassword", "Security Key", nullptr));
         label_4->setText(QCoreApplication::translate("forgetPassword", "new Password", nullptr));
         pushButton->setText(QCoreApplication::translate("forgetPassword", "Change Password", nullptr));
-        pushButton_2->setText(QCoreApplication::translate("forgetPassword", "PushButton", nullptr));
+        pushButton_2->setText(QCoreApplication::translate("forgetPassword", "Back Login", nullptr));
     } // retranslateUi
 
 };

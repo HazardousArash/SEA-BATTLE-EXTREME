@@ -5,8 +5,10 @@
 #include <QSqlDatabase>
 #include <QDebug>
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QErrorMessage>
 #include <QCryptographicHash>
+#include "playermenu.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -46,7 +48,7 @@ void MainWindow::on_loginButt_clicked()
     }
     else{
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-        db.setDatabaseName("newDB.db");
+        db.setDatabaseName("G:\\oldDesktop\\programing\\newS\\UNI\\402-403-AP\\QTFiles\\loginPage\\newDB.db");
         if (!db.open()) {
             qDebug() << "Error opening database: ";
             return;
@@ -61,12 +63,20 @@ void MainWindow::on_loginButt_clicked()
         query.bindValue(":username",ui->userLine->text());
         query.bindValue(":password", userPass);
         QErrorMessage* errorDialog = new QErrorMessage(this);
-        if (query.exec() && query.next()) {
-            qDebug() << "Login successful!";
-            errorDialog->showMessage("Login was successful");
+        qDebug()<<ui->userLine->text()<<"   "<<userPass;
+        if (query.exec()) {
+            if (query.next()) {
+                qDebug() << "Login successful!";
+                playerMenu *newPage = new playerMenu(ui->userLine->text());
+                this->close();
+                newPage->show();
+                                errorDialog->showMessage("Login was successful");
+            } else {
+                qDebug() << "Invalid login credentials."<<query.lastError().text();
+                errorDialog->showMessage("Login failed!");
+            }
         } else {
-            qDebug() << "Invalid login credentials.";
-             errorDialog->showMessage("Login failed!");
+            qDebug() << "Error executing query"<<query.lastError().text();
         }
     }
 }

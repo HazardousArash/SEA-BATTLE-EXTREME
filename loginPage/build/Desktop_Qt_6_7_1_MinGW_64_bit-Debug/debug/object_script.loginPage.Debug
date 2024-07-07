@@ -1,0 +1,13 @@
+debug/forgetpassword.o
+debug/main.o
+debug/mainwindow.o
+debug/playermenu.o
+debug/singu.o
+debug/statsmenu.o
+debug/qrc_newRc.o
+debug/qrc_qmake_qmake_qm_files.o
+debug/moc_forgetpassword.o
+debug/moc_mainwindow.o
+debug/moc_playermenu.o
+debug/moc_singu.o
+debug/moc_statsmenu.o
