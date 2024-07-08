@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/">
+        <file>themes/theme1/paperGrid.png</file>
+        <file>themes/theme1/rawGrid.png</file>
+        <file>themes/theme2/paperGrid.png</file>
+        <file>themes/theme2/rawGrid.png</file>
+        <file>themes/theme1/back.png</file>
+        <file>themes/theme1/next.png</file>
+        <file>themes/theme1/shuffle.png</file>
+        <file>themes/theme2/back.png</file>
+        <file>themes/theme2/next.png</file>
+        <file>themes/theme2/shuffle.png</file>
+        <file>themes/theme1/table.png</file>
+        <file>themes/theme2/table.png</file>
+        <file>themes/theme1/bigRipple.png</file>
+        <file>themes/theme1/midRipple.png</file>
+        <file>themes/theme1/smallRipple.png</file>
+        <file>themes/theme1/smallShip.png</file>
+        <file>themes/theme1/tinyShip.png</file>
+        <file>themes/theme1/midShip.png</file>
+        <file>themes/theme1/paperGridEnemy.png</file>
+        <file>themes/theme1/waterBackground.gif</file>
+        <file>themes/theme1/largeShip.png</file>
+        <file>themes/theme1/bombArsenal.png</file>
+        <file>themes/theme1/gunArsenal.png</file>
+        <file>themes/theme1/missileArsenal.png</file>
+        <file>themes/theme1/radarArsenal.png</file>
+        <file>themes/theme1/shieldArsenal.png</file>
+    </qresource>
+</RCC>
