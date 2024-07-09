@@ -13,12 +13,16 @@
 #include <QContextMenuEvent>
 #include <QMenu>
 #include "GlobalVariables.h"
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QInputDialog>
 PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myBoard, Board* enemyBoard, ThemeManager* themeManager)
     : QWidget(parent),
     ui(new Ui::PlayingWindow),
     gameWindow(gameWindow),
     myBoard(new Board(*myBoard)),  // Make a deep copy of the myBoard
-    enemyBoard(new Board(*enemyBoard)),  // Make a deep copy of the enemyBoard
+    enemyBoard(new Board(*enemyBoard)),
+    // Make a deep copy of the enemyBoard
     themeManager(themeManager) {
     qDebug() << "PlayingWindow constructor started";
 
@@ -33,9 +37,10 @@ PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myB
 
     updateGridWithBoardState(this->myBoard, "myBoard"); // Update the grid with the current board state
     updateGridWithBoardState(this->enemyBoard, "enemyBoard"); // Update the enemy grid with the current board state
-   //connect(myBoard, &Board::gameOver, this, &PlayingWindow::showLoseWindow);
+    //connect(myBoard, &Board::gameOver, this, &PlayingWindow::showLoseWindow);
 
-
+    connect(ui->gunButton, &QPushButton::clicked, this, &PlayingWindow::onGunButtonClicked);
+    connect(ui->radarButton, &QPushButton::clicked, this, &PlayingWindow::onRadarButtonClicked);
     if (this->myBoard) {
         qDebug() << "My Board size:" << this->myBoard->getGrid().size();
     }
@@ -390,6 +395,16 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
     if (player2Turn && modeChosen != 1) {
         qDebug() << "Player 2 clicked on myBoard at (" << row << ", " << col << ")";
 
+        if (row == gameWindow->playerOneShieldedRows.first || row == gameWindow->playerOneShieldedRows.second) {
+            QMessageBox::information(this, "Shield Activated", "Shield activated! Player 2's turn is over.");
+            qDebug() << "Shield activated for player 1 at row" << row;
+            // Reset the shield rows
+            gameWindow->playerOneShieldedRows = qMakePair(-1, -1);
+            player1Turn = true;
+            player2Turn = false;
+            return;
+        }
+
         int cellValue = myBoard->getCell(row, col);
 
         if (cellValue == 0) {
@@ -398,17 +413,36 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
             ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
             if (cell) {
                 cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;");  // Glassy red
-                cell->setEnabled(false);  // Make it unclickable
+                cell->setEnabled(false); // Make it unclickable
             }
             // Switch turns
             qDebug() << "Player 2 missed. Switching to player 1's turn.";
+            player1Turn = true;
+            player2Turn = false;
+        } else if (cellValue == 101) {
+            QMessageBox::information(this, "Don't hit yourself!", "Don't hit yourself!");
+
+            if (enemyBoard->getGrid()[row][col] > 0 && enemyBoard->getGrid()[row][col] <= 10) {
+                enemyBoard->getGrid()[row][col] *= -1;
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setStyleSheet("background: rgba(255, 0, 0, 1); border: 1px solid gray;"); // Solid red
+                }
+                qDebug() << "Player 2 hit a mine at (" << row << ", " << col << ") and affected their own ship.";
+            } else {
+                enemyBoard->getGrid()[row][col] = -1; // Mark player's own board
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;"); // Glassy red
+                }
+            }
+
             player1Turn = true;
             player2Turn = false;
         } else if (cellValue > 0) {
             int shipID = cellValue;
             myBoard->getGrid()[row][col] = -cellValue;
             markSingleShipBlockWithCross(row, col, "myBoard");
-            markSingleShipBlockWithCross( row,  col, "myBoard"); // Add this line to mark the block
             ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
             if (cell) {
                 cell->setEnabled(false);  // Make it unclickable
@@ -438,11 +472,6 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
         qDebug() << "It's not player 2's turn!";
     }
 }
-
-
-
-
-
 
 void PlayingWindow::markSingleShipBlockWithCross(int row, int col) {
     ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
@@ -531,6 +560,17 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
     if (modeChosen == 1 && player1Turn) { // Mode 1 logic
         qDebug() << "Player clicked on enemyBoard at (" << row << ", " << col << ")";
 
+        if (row == gameWindow->playerTwoShieldedRows.first || row == gameWindow->playerTwoShieldedRows.second) {
+            QMessageBox::information(this, "Shield Activated", "Shield activated! Enemy's turn is over.");
+            qDebug() << "Shield activated for player 2 at row" << row;
+            // Reset the shield rows
+            gameWindow->playerTwoShieldedRows = qMakePair(-1, -1);
+            player1Turn = false;
+            player2Turn = true;
+            QTimer::singleShot(1000, gameWindow, &GameWindow::triggerBotTurn); // Call bot's turn
+            return;
+        }
+
         int cellValue = enemyBoard->getCell(row, col);
 
         if (cellValue == 0) {
@@ -546,11 +586,31 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             player1Turn = false;
             player2Turn = true;
             QTimer::singleShot(1000, gameWindow, &GameWindow::triggerBotTurn); // Call bot's turn
+        } else if (cellValue == 101) {
+            QMessageBox::information(this, "Don't hit yourself!", "Don't hit yourself!");
+
+            if (myBoard->getGrid()[row][col] > 0 && myBoard->getGrid()[row][col] <= 10) {
+                myBoard->getGrid()[row][col] *= -1;
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setStyleSheet("background: rgba(255, 0, 0, 1); border: 1px solid gray;"); // Solid red
+                }
+                qDebug() << "Player hit a mine at (" << row << ", " << col << ") and affected their own ship.";
+            } else {
+                myBoard->getGrid()[row][col] = -1; // Mark player's own board
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;"); // Glassy red
+                }
+            }
+
+            player1Turn = false;
+            player2Turn = true;
+            QTimer::singleShot(1000, gameWindow, &GameWindow::triggerBotTurn); // Call bot's turn
         } else if (cellValue > 0) {
             int shipID = cellValue;
             enemyBoard->getGrid()[row][col] = -cellValue;
             markSingleShipBlockWithCross(row, col, "enemyBoard");
-            markSingleShipBlockWithCross(row, col, "enemyBoard"); // Add this line to mark the block
             ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
             if (cell) {
                 cell->setEnabled(false); // Make it unclickable
@@ -576,6 +636,16 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
     } else if (modeChosen != 1 && player1Turn) { // Mode 2 logic
         qDebug() << "Player 1 clicked on enemyBoard at (" << row << ", " << col << ")";
 
+        if (row == gameWindow->playerTwoShieldedRows.first || row == gameWindow->playerTwoShieldedRows.second) {
+            QMessageBox::information(this, "Shield Activated", "Shield activated! Player 1's turn is over.");
+            qDebug() << "Shield activated for player 2 at row" << row;
+            // Reset the shield rows
+            gameWindow->playerTwoShieldedRows = qMakePair(-1, -1);
+            player1Turn = false;
+            player2Turn = true;
+            return;
+        }
+
         int cellValue = enemyBoard->getCell(row, col);
 
         if (cellValue == 0) {
@@ -590,11 +660,30 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             qDebug() << "Player 1 missed. Switching to player 2's turn.";
             player1Turn = false;
             player2Turn = true;
+        } else if (cellValue == 101) {
+            QMessageBox::information(this, "Don't hit yourself!", "Don't hit yourself!");
+
+            if (myBoard->getGrid()[row][col] > 0 && myBoard->getGrid()[row][col] <= 10) {
+                myBoard->getGrid()[row][col] *= -1;
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setStyleSheet("background: rgba(255, 0, 0, 1); border: 1px solid gray;"); // Solid red
+                }
+                qDebug() << "Player hit a mine at (" << row << ", " << col << ") and affected their own ship.";
+            } else {
+                myBoard->getGrid()[row][col] = -1; // Mark player's own board
+                ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;"); // Glassy red
+                }
+            }
+
+            player1Turn = false;
+            player2Turn = true;
         } else if (cellValue > 0) {
             int shipID = cellValue;
             enemyBoard->getGrid()[row][col] = -cellValue;
             markSingleShipBlockWithCross(row, col, "enemyBoard");
-            markSingleShipBlockWithCross(row, col, "enemyBoard"); // Add this line to mark the block
             ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
             if (cell) {
                 cell->setEnabled(false);  // Make it unclickable
@@ -622,7 +711,100 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
     }
 }
 
+void PlayingWindow::onRadarButtonClicked() {
+    qDebug() << "Radar button clicked";
+    int radarCount;
 
+    if (modeChosen == 1) {
+        radarCount = humanRadarCounts; // In mode 1, only player 1 (human) uses the radar
+    } else {
+        radarCount = (player1Turn) ? playerOneNumberOfRadars : playerTwoNumberOfRadars;
+    }
+
+    qDebug() << "Radar count for current player:" << radarCount;
+
+    if (radarCount > 0) {
+        bool validInput = false;
+        while (!validInput) {
+            QDialog dialog(this);
+            dialog.setWindowTitle("Enter Coordinates for Radar Scan");
+            QVBoxLayout layout(&dialog);
+
+            QFormLayout formLayout;
+            QLineEdit rowInput;
+            QLineEdit colInput;
+            formLayout.addRow("Row:", &rowInput);
+            formLayout.addRow("Col:", &colInput);
+            layout.addLayout(&formLayout);
+
+            QHBoxLayout buttonLayout;
+            QPushButton okButton("OK");
+            buttonLayout.addWidget(&okButton);
+            layout.addLayout(&buttonLayout);
+
+            connect(&okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+
+            if (dialog.exec() == QDialog::Accepted) {
+                int row = rowInput.text().toInt();
+                int col = colInput.text().toInt();
+
+                Board* targetBoard = player1Turn ? enemyBoard : myBoard; // Use enemyBoard for player 1 and myBoard for player 2
+
+                // Check the 3x3 area around the selected cell
+                bool shipFound = false;
+                int numRows = targetBoard->getGrid().size();
+                int numCols = (numRows > 0) ? targetBoard->getGrid()[0].size() : 0;
+
+                qDebug() << "Scanning area around (" << row << "," << col << ")";
+                for (int i = row - 1; i <= row + 1 && !shipFound; ++i) {
+                    for (int j = col - 1; j <= col + 1; ++j) {
+                        if (i >= 0 && i < numRows && j >= 0 && j < numCols) {
+                            int cellValue = targetBoard->getGrid()[i][j];
+                            qDebug() << "Checking cell (" << i << "," << j << ") with value" << cellValue;
+                            if (cellValue > 0 && cellValue <= 10) {
+                                QMessageBox::information(this, "Radar Result", QString("Ship found at (%1, %2)").arg(i).arg(j));
+                                shipFound = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!shipFound) {
+                    QMessageBox::information(this, "Radar Result", "No ships found in the scanned area.");
+                }
+
+                validInput = true;
+
+                // Decrease radar count
+                if (modeChosen == 1) {
+                    humanRadarCounts--;
+                    qDebug() << "Human player used a radar. Remaining radars:" << humanRadarCounts;
+                } else if (player1Turn) {
+                    playerOneNumberOfRadars--;
+                    qDebug() << "Player 1 used a radar. Remaining radars:" << playerOneNumberOfRadars;
+                } else {
+                    playerTwoNumberOfRadars--;
+                    qDebug() << "Player 2 used a radar. Remaining radars:" << playerTwoNumberOfRadars;
+                }
+            }
+        }
+    } else {
+        QMessageBox::warning(this, "No Radars", "You have no radars available.");
+        qDebug() << "No radars available for the current player.";
+    }
+}
+
+
+void PlayingWindow::setupRadarButton() {
+    radarButton = ui->radarButton;
+    radarButton->setText("Radar");
+    radarButton->setFixedSize(60, 60); // Adjust the button size if needed
+    //radarButton->setStyleSheet("QPushButton { border: none; background: transparent; }");
+
+    qDebug() << "Connecting radar button signal to slot.";
+    connect(radarButton, &QPushButton::clicked, this, &PlayingWindow::onRadarButtonClicked);
+}
 
 void PlayingWindow::markSingleShipBlockWithCross(int row, int col, const QString& boardName) {
     qDebug() << "Marking block with cross at (" << row << ", " << col << ") on " << boardName;
@@ -673,6 +855,73 @@ void PlayingWindow::makeShipBlocksPurple(int shipID) {
     }
 }
 
+void PlayingWindow::onGunButtonClicked() {
+    int& currentPlayerGuns = (player1Turn) ? playerOneNumberOfGuns : playerTwoNumberOfGuns;
+
+    if (currentPlayerGuns <= 0) {
+        QMessageBox::information(this, "No Guns", "You have no guns left to use.");
+        return;
+    }
+
+    bool ok;
+    int row = QInputDialog::getInt(this, "Enter Row", "Row:", 0, 0, 9, 1, &ok);
+
+    if (ok) {
+        qDebug() << "Scanning row:" << row;
+        bool shipFound = false;
+
+        // Determine the correct target board
+        Board* targetBoard;
+        if (modeChosen == 1) {
+            targetBoard = enemyBoard;
+        } else {
+            targetBoard = player1Turn ? enemyBoard : myBoard;
+        }
+
+        // Debugging: Print the target board state
+        qDebug() << "Target Board State:";
+        for (const auto& rowVec : targetBoard->getGrid()) {
+            QString rowString;
+            for (int cell : rowVec) {
+                rowString += QString::number(cell) + " ";
+            }
+            qDebug() << rowString;
+        }
+
+        for (int col = 0; col < targetBoard->getGrid()[0].size(); ++col) {
+            int cellValue = targetBoard->getCell(row, col);
+            qDebug() << "Checking cell (" << row << ", " << col << ") with value " << cellValue;
+            if (cellValue > 0 && cellValue <= 10) {
+                targetBoard->getGrid()[row][col] *= -1; // Mark as hit
+                ClickableLabel* cell = (modeChosen == 1 || player1Turn) ?
+                                           findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col)) :
+                                           findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
+                if (cell) {
+                    cell->setStyleSheet("background: rgba(255, 0, 0, 1); border: 1px solid gray;"); // Solid red
+                    cell->setEnabled(false); // Make it unclickable
+                }
+                QMessageBox::information(this, "Gun Shot", QString("Ship found and hit at (%1, %2)").arg(row).arg(col));
+                shipFound = true;
+                currentPlayerGuns--; // Decrement the gun count
+                break;
+            }
+        }
+
+        if (!shipFound) {
+            QMessageBox::information(this, "Gun Shot", "No ship was shot in the selected row.");
+        }
+
+        if (modeChosen == 1 && player1Turn) {
+            player1Turn = false;
+            player2Turn = true;
+            QTimer::singleShot(1000, gameWindow, &GameWindow::triggerBotTurn); // Bot's turn
+        } else {
+            player1Turn = !player1Turn;
+            player2Turn = !player2Turn;
+        }
+    }
+}
+
 
 void PlayingWindow::markSingleShipBlockGreen(int row, int col) {
     ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
@@ -694,10 +943,6 @@ void PlayingWindow::markSingleShipBlockGreen(int row, int col) {
         }
     }
 }
-
-
-
-
 
 void PlayingWindow::showEvent(QShowEvent *event) {
     QWidget::showEvent(event);

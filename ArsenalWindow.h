@@ -36,6 +36,8 @@ public:
     void setOil(int oil);
     int getOil() const;
     void resetArsenal();
+    void showShieldCoordinateDialog();
+
 private:
     Ui::ArsenalWindow *ui;
     ThemeManager themeManager;
@@ -55,7 +57,7 @@ private:
     void setupCustomFont();
     int getCurrentPlayerOil() const;
     void setCurrentPlayerOil(int oil);
-
+    void setupRadarButton() ;
 private slots:
     void onStartButtonClicked();
 signals:

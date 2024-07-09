@@ -6,7 +6,7 @@
 #include "ClickableLabel.h"
 #include "GameWindow.h"
 #include <QTimer>
-
+#include <QPushButton>
 class GameWindow;
 namespace Ui {
 class PlayingWindow;
@@ -27,7 +27,9 @@ public:
     void botShootingAnimation(int row, int col, bool hit);
     void botShoot(int row, int col);
     void markShipBlockWithHitIndicator(int row, int col, const QString& boardName);
-
+    void setupRadarButton();
+    QPushButton *radarButton;
+    void onGunButtonClicked();
 protected:
     void showEvent(QShowEvent *event) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
@@ -48,12 +50,13 @@ private slots:
     void onEnemyBoardBlockClicked(int row, int col);
     void markSingleShipBlockGreen(int row, int col) ;
     void makeShipBlocksWhite(int shipID);
-
+    void onRadarButtonClicked();
 
 public slots:
     //void clearShipBlockCrosses(int shipID);
     void makeShipBlocksPurple(int shipID, const QString& boardName);
     void showLoseWindow();
+
 };
 
 #endif // PLAYINGWINDOW_H

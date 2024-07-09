@@ -52,9 +52,37 @@
     <string>TextLabel</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="radarButton">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>550</y>
+     <width>83</width>
+     <height>29</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PushButton</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="gunButton">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>600</y>
+     <width>83</width>
+     <height>29</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PushButton</string>
+   </property>
+  </widget>
   <zorder>waterBackground</zorder>
   <zorder>myBoard</zorder>
   <zorder>enemyBoard</zorder>
+  <zorder>radarButton</zorder>
+  <zorder>gunButton</zorder>
  </widget>
  <resources/>
  <connections/>

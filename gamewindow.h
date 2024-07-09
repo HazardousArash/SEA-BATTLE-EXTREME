@@ -13,6 +13,7 @@
 #include "ArsenalWindow.h"
 #include <QVector>
 #include "ArsenalItem.h"
+#include <QPair>
 class PlayingWindow;
 class ArsenalWindow;
 namespace Ui {
@@ -54,6 +55,9 @@ public:
     void handleArsenalSelectionComplete(int player, int remainingOil, const QVector<ArsenalItem>& selectedArsenal);
     ArsenalWindow *arsenalWindow;
     void processAttack(int row, int col, Board* attackingBoard, Board* defendingBoard, int attackingPlayer);
+    QVector<QPair<int, int>> humanBombs;
+    QPair<int, int> playerOneShieldedRows;
+    QPair<int, int> playerTwoShieldedRows;
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 

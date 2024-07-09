@@ -21,6 +21,7 @@
 #include <QDebug>
 #include "thememanager.h"
 #include <QTimer>
+#include <QRandomGenerator>
 int initialX = 50;
 int initialY = 50;
 GameWindow::GameWindow(QWidget *parent)
@@ -40,7 +41,8 @@ GameWindow::GameWindow(QWidget *parent)
 
     connect(ui->nextButton, &QPushButton::clicked, this, &GameWindow::onNextButtonClicked);
     connect(this, &GameWindow::secondPlayerSetupComplete, this, &GameWindow::showPlayingWindow);
-
+    playerOneShieldedRows = qMakePair(-1, -1);
+    playerTwoShieldedRows = qMakePair(-1, -1);
     // Initialize the ArsenalWindow
     arsenalWindow = new ArsenalWindow(this);
     connect(arsenalWindow, &ArsenalWindow::arsenalSelectionComplete, this, &GameWindow::onArsenalSelectionComplete);
@@ -365,8 +367,45 @@ void GameWindow::triggerBotTurn() {
         int selectedRow, selectedCol;
         int result = enemyBoard->botAi(*myBoard, selectedRow, selectedCol); // Use myBoard directly
 
-        // Debug: Check the selected cell and result
-        qDebug() << "Bot selected (" << selectedRow << ", " << selectedCol << "), result: " << result;
+        // Check if bot hits a shielded row
+        if (playerOneShieldedRows.first == selectedRow || playerOneShieldedRows.second == selectedRow) {
+            QMessageBox::information(this, "Bot hit a shield!", "Bot hit a shield! His turn is over.");
+            playerOneShieldedRows = qMakePair(-1, -1); // Shield expires after first hit
+            qDebug() << "Shield on row" << selectedRow << "expired for Player 1.";
+            player1Turn = true;
+            player2Turn = false;
+            return;
+        }
+
+        // Check if bot hit a mine placed by the player
+        for (const auto& mine : humanBombs) {
+            if (mine.first == selectedRow && mine.second == selectedCol) {
+                qDebug() << "Bot hit a mine at (" << selectedRow << ", " << selectedCol << ")";
+                QMessageBox::information(this, "Don't hit yourself!", "Bot hit a mine!");
+
+                // Reflect hit on bot's own board
+                int botRow = mine.first;
+                int botCol = mine.second;
+                if (enemyBoard->getGrid()[botRow][botCol] > 0 && enemyBoard->getGrid()[botRow][botCol] <= 10) {
+                    enemyBoard->getGrid()[botRow][botCol] *= -1;
+                    ClickableLabel* cell = playingWindow->findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(botRow).arg(botCol));
+                    if (cell) {
+                        cell->setStyleSheet("background: rgba(255, 0, 0, 1); border: 1px solid gray;"); // Solid red
+                    }
+                    qDebug() << "Bot hit a mine at (" << botRow << ", " << botCol << ") and affected its own ship.";
+                } else {
+                    enemyBoard->getGrid()[botRow][botCol] = -1; // Mark bot's own board
+                    ClickableLabel* cell = playingWindow->findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(botRow).arg(botCol));
+                    if (cell) {
+                        cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;"); // Glassy red
+                    }
+                }
+
+                player1Turn = true;
+                player2Turn = false; // Switch back to player's turn
+                return;
+            }
+        }
 
         // Update the playing window to reflect the bot's move
         if (playingWindow) {
@@ -453,6 +492,8 @@ void GameWindow::triggerBotTurn() {
         }
     }
 }
+
+
 
 void GameWindow::contextMenuEvent(QContextMenuEvent* event) {
     Q_UNUSED(event);

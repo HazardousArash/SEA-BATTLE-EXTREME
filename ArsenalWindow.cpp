@@ -20,10 +20,8 @@ ArsenalWindow::ArsenalWindow(GameWindow* gameWindow, QWidget *parent) :
     setupButton(); // Setup the button icon
     setupIcons(); // Setup arsenal icons
     setupCustomFont(); // Setup custom font
-    setupOilBar(); // Setup oil bar
+    setupOilBar(); // Setup oil bar // Setup radar button
 }
-
-
 ArsenalWindow::~ArsenalWindow()
 {
     delete ui;
@@ -40,6 +38,9 @@ void ArsenalWindow::setMode(int mode) {
 void ArsenalWindow::setPlayer(int player) {
     currentPlayer = player;
     resetArsenal(); // Reset arsenal items for the new player
+
+    // Debugging statement
+    qDebug() << "Current player set to:" << currentPlayer;
 
     // Hide all labels and buttons
     for (const QString& iconName : {"radarArsenal", "gunArsenal", "shieldArsenal", "missileArsenal", "bombArsenal"}) {
@@ -185,12 +186,29 @@ void ArsenalWindow::setupIcons() {
                 if (iconName == "radarArsenal") {
                     ArsenalRadar* radar = new ArsenalRadar();
                     qDebug() << "Created ArsenalRadar object.";
+                    if (currentPlayer == 1||currentPlayer ==0) {
+                        playerOneNumberOfRadars++;
+                        humanRadarCounts++;
+                        qDebug() << "Human player radar count: " << humanRadarCounts;
+                    } else if (currentPlayer == 2) {
+                        playerTwoNumberOfRadars++;
+                        qDebug() << "Player 2 radar count: " << playerTwoNumberOfRadars;
+                    }
                 } else if (iconName == "gunArsenal") {
                     ArsenalGun* gun = new ArsenalGun();
                     qDebug() << "Created ArsenalGun object.";
+                    // Increment the gun count for the current player
+                     if (currentPlayer == 1||currentPlayer ==0) {
+                        playerOneNumberOfGuns++;
+                        qDebug() << "Player 1 now has " << playerOneNumberOfGuns << " guns.";
+                    } else {
+                        playerTwoNumberOfGuns++;
+                        qDebug() << "Player 2 now has " << playerTwoNumberOfGuns << " guns.";
+                    }
                 } else if (iconName == "shieldArsenal") {
                     ArsenalShield* shield = new ArsenalShield();
                     qDebug() << "Created ArsenalShield object.";
+                    showShieldCoordinateDialog();
                 } else if (iconName == "missileArsenal") {
                     ArsenalMissile* missile = new ArsenalMissile();
                     qDebug() << "Created ArsenalMissile object.";
@@ -337,6 +355,9 @@ void ArsenalWindow::showMineCoordinateDialog(ArsenalItem& item) {
                 playerBoard->getGrid()[row][col] = 101;
                 qDebug() << "Mine placed at (" << row << "," << col << ") on player" << currentPlayer << "board.";
 
+                // Store the coordinates in humanBombs
+                gameWindow->humanBombs.append(qMakePair(row, col));
+
                 // Print the board for debugging
                 qDebug() << "Current Board State:";
                 for (const auto& rowVec : playerBoard->getGrid()) {
@@ -357,6 +378,47 @@ void ArsenalWindow::showMineCoordinateDialog(ArsenalItem& item) {
 bool ArsenalWindow::validateMineCoordinate(int row, int col) {
     Board* playerBoard = currentPlayer == 1 ? &player1Board : &player2Board;
     return playerBoard->getCell(row, col) == 0; // Ensure the cell is empty
+}
+
+void ArsenalWindow::showShieldCoordinateDialog() {
+    bool validInput = false;
+    while (!validInput) {
+        QDialog dialog(this);
+        dialog.setWindowTitle("Enter Rows for Shield Placement");
+        QVBoxLayout layout(&dialog);
+
+        QFormLayout formLayout;
+        QLineEdit row1Input;
+        QLineEdit row2Input;
+        formLayout.addRow("Row 1:", &row1Input);
+        formLayout.addRow("Row 2:", &row2Input);
+        layout.addLayout(&formLayout);
+
+        QHBoxLayout buttonLayout;
+        QPushButton okButton("OK");
+        buttonLayout.addWidget(&okButton);
+        layout.addLayout(&buttonLayout);
+
+        connect(&okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+
+        if (dialog.exec() == QDialog::Accepted) {
+            int row1 = row1Input.text().toInt();
+            int row2 = row2Input.text().toInt();
+
+            // Validate the rows
+            if (row1 >= 0 && row1 < 10 && row2 >= 0 && row2 < 10 && row1 != row2) {
+                if (currentPlayer == 1) {
+                    gameWindow->playerOneShieldedRows = qMakePair(row1, row2);
+                } else {
+                    gameWindow->playerTwoShieldedRows = qMakePair(row1, row2);
+                }
+                qDebug() << "Shield rows set for player" << currentPlayer << ":" << row1 << "and" << row2;
+                validInput = true;
+            } else {
+                QMessageBox::warning(this, "Invalid Input", "Invalid rows or rows are the same. Please try again.");
+            }
+        }
+    }
 }
 
 
