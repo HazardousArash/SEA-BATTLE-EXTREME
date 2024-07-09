@@ -27,10 +27,9 @@ GameWindow::GameWindow(QWidget *parent)
     : QWidget(parent),
     ui(new Ui::GameWindow),
     playingWindow(nullptr),
-    arsenalWindow(nullptr), // Initialize the ArsenalWindow pointer
-    myBoard(new Board()), // Initialize myBoard
+    myBoard(new Board()),  // Initialize myBoard
     enemyBoard(new Board()),
-    player1Turn(true),
+    player1Turn(true),isSecondPlayerSettingUp(false),
     player2Turn(false)
 {
     ui->setupUi(this);
@@ -41,17 +40,44 @@ GameWindow::GameWindow(QWidget *parent)
 
     connect(ui->nextButton, &QPushButton::clicked, this, &GameWindow::onNextButtonClicked);
     connect(this, &GameWindow::secondPlayerSetupComplete, this, &GameWindow::showPlayingWindow);
+
+    // Initialize the ArsenalWindow
+    arsenalWindow = new ArsenalWindow(this);
+    connect(arsenalWindow, &ArsenalWindow::arsenalSelectionComplete, this, &GameWindow::onArsenalSelectionComplete);
 }
+void GameWindow::onArsenalSelectionComplete(int player, int oil, const QVector<ArsenalItem>& arsenal) {
+    if (player == 1) {
+        playerOneOil = oil;
+        playerOneArsenal = arsenal;
+    } else if (player == 2) {
+        playerTwoOil = oil;
+        playerTwoArsenal = arsenal;
+    }
 
-
-
-
+    if (modeChosen == 2 && player == 1) {
+        qDebug() << "Player 1 completed arsenal selection, starting Player 2 setup";
+        // Prepare for Player 2 setup
+        board.reset(); // Reset the board
+        Ship::resetIDCounter();
+        // Hide Player 1's DraggableButtons
+        for (auto button : findChildren<DraggableButton*>()) {
+            button->hide();
+        }
+        // Reinitialize the fleet for Player 2
+        initializeFleet();
+        ui->statusLabel->setText("Second player, set up your board!");
+        resetBlockColors();
+    } else {
+        // Proceed to the playing window
+        showPlayingWindow();
+    }
+}
 GameWindow::~GameWindow() {
     delete ui;
     delete playingWindow; // Clean up PlayingWindow
-    delete arsenalWindow; // Clean up ArsenalWindow
     delete myBoard;
     delete enemyBoard;
+    delete arsenalWindow; // Clean up ArsenalWindow
 }
 
 bool GameWindow::areAllShipsPlaced() {
@@ -105,6 +131,9 @@ void GameWindow::onNextButtonClicked() {
         if (!arsenalWindow) {
             qDebug() << "Creating ArsenalWindow instance";
             arsenalWindow = new ArsenalWindow(this);
+            arsenalWindow->setMode(modeChosen);
+            arsenalWindow->setPlayer(1); // Set player 1
+            arsenalWindow->setOil(playerOneOil);
         }
 
         this->hide(); // Hide the current window
@@ -115,7 +144,7 @@ void GameWindow::onNextButtonClicked() {
         arsenalWindow->show(); // Show the ArsenalWindow
         arsenalWindow->raise(); // Bring the ArsenalWindow to the top
         arsenalWindow->activateWindow(); // Focus the ArsenalWindow
-        qDebug() << "ArsenalWindow shown and activated";
+        qDebug() << "ArsenalWindow for player 1 shown and activated";
 
         // Connect the start button to proceed to the PlayingWindow
         connect(arsenalWindow->getStartButton(), &QPushButton::clicked, this, [this]() {
@@ -139,10 +168,17 @@ void GameWindow::onNextButtonClicked() {
             player2Board.resetUnavailableCells();
             emit secondPlayerSetupComplete(); // Emit the signal when the second player is done
 
-            // Show ArsenalWindow
+            // Show ArsenalWindow for player 2
             if (!arsenalWindow) {
                 qDebug() << "Creating ArsenalWindow instance";
                 arsenalWindow = new ArsenalWindow(this);
+                arsenalWindow->setMode(modeChosen);
+                arsenalWindow->setPlayer(2); // Set player 2
+                arsenalWindow->setOil(playerTwoOil);
+            } else {
+                //arsenalWindow->resetArsenal(); // Reset the arsenal items for player 2
+                arsenalWindow->setPlayer(2); // Ensure player 2 is set
+                arsenalWindow->setOil(playerTwoOil); // Ensure oil is set correctly for player 2
             }
 
             this->hide(); // Hide the current window
@@ -153,22 +189,27 @@ void GameWindow::onNextButtonClicked() {
             arsenalWindow->show(); // Show the ArsenalWindow
             arsenalWindow->raise(); // Bring the ArsenalWindow to the top
             arsenalWindow->activateWindow(); // Focus the ArsenalWindow
-            qDebug() << "ArsenalWindow shown and activated";
+            qDebug() << "ArsenalWindow for player 2 shown and activated";
 
             // Connect the start button to proceed to the PlayingWindow
-            connect(arsenalWindow->getStartButton(), &QPushButton::clicked, this, [this]() {
-                arsenalWindow->close();
-                if (!playingWindow) {
-                    qDebug() << "Creating PlayingWindow instance for 1vs1 mode";
-                    playingWindow = new PlayingWindow(this, this, &player1Board, &player2Board, &themeManager);
-                }
+            connect(arsenalWindow, &ArsenalWindow::arsenalSelectionComplete, this, [this](int player, int oil, const QVector<ArsenalItem>& arsenal) {
+                if (player == 2) {
+                    playerTwoOil = oil;
+                    playerTwoArsenal = arsenal;
+                    arsenalWindow->close();
 
-                playingWindow->setWindowFlags(Qt::Window); // Ensure it has window flags set correctly
-                playingWindow->setWindowModality(Qt::NonModal); // Ensure it is non-modal
-                playingWindow->show(); // Show the PlayingWindow
-                playingWindow->raise(); // Bring the PlayingWindow to the top
-                playingWindow->activateWindow(); // Focus the PlayingWindow
-                qDebug() << "PlayingWindow shown and activated";
+                    if (!playingWindow) {
+                        qDebug() << "Creating PlayingWindow instance for 1vs1 mode";
+                        playingWindow = new PlayingWindow(this, this, &player1Board, &player2Board, &themeManager);
+                    }
+
+                    playingWindow->setWindowFlags(Qt::Window); // Ensure it has window flags set correctly
+                    playingWindow->setWindowModality(Qt::NonModal); // Ensure it is non-modal
+                    playingWindow->show(); // Show the PlayingWindow
+                    playingWindow->raise(); // Bring the PlayingWindow to the top
+                    playingWindow->activateWindow(); // Focus the PlayingWindow
+                    qDebug() << "PlayingWindow shown and activated";
+                }
             });
 
         } else {
@@ -189,13 +230,83 @@ void GameWindow::onNextButtonClicked() {
 
             isSecondPlayerSettingUp = true;
 
-            // Show a message or update UI to indicate it's the second player's turn
-            ui->statusLabel->setText("Second player, set up your board!");
+            // Show ArsenalWindow for player 1
+            if (!arsenalWindow) {
+                qDebug() << "Creating ArsenalWindow instance";
+                arsenalWindow = new ArsenalWindow(this);
+                arsenalWindow->setMode(modeChosen);
+                arsenalWindow->setPlayer(1); // Set player 1
+                arsenalWindow->setOil(playerOneOil);
+            } else {
+                //arsenalWindow->resetArsenal(); // Reset the arsenal items for player 1
+                arsenalWindow->setPlayer(1); // Ensure player 1 is set
+                arsenalWindow->setOil(playerOneOil); // Ensure oil is set correctly for player 1
+            }
+
+            this->hide(); // Hide the current window
+            qDebug() << "GameWindow hidden";
+
+            arsenalWindow->setWindowFlags(Qt::Window); // Ensure it has window flags set correctly
+            arsenalWindow->setWindowModality(Qt::WindowModal); // Ensure it is window modal
+            arsenalWindow->show(); // Show the ArsenalWindow
+            arsenalWindow->raise(); // Bring the ArsenalWindow to the top
+            arsenalWindow->activateWindow(); // Focus the ArsenalWindow
+            qDebug() << "ArsenalWindow for player 1 shown and activated";
+
+            // Connect the signal for arsenal selection completion
+            connect(arsenalWindow, &ArsenalWindow::arsenalSelectionComplete, this, [this](int player, int oil, const QVector<ArsenalItem>& arsenal) {
+                if (player == 1) {
+                    playerOneOil = oil;
+                    playerOneArsenal = arsenal;
+                    arsenalWindow->close();
+
+                    qDebug() << "Player 1 completed arsenal selection, starting Player 2 setup";
+                    show();
+                }
+            });
 
             // Clear the grid background if necessary
             resetBlockColors();
         }
     }
+}
+void GameWindow::processAttack(int row, int col, Board* attackingBoard, Board* defendingBoard, int attackingPlayer) {
+    int cellValue = defendingBoard->getGrid()[row][col];
+
+    if (cellValue == 101) {
+        // A mine was hit
+        QMessageBox::information(this, "Don't hit yourself!", "Don't hit yourself!");
+
+        // The attacking player's block in [row][col] is affected
+        attackingBoard->getGrid()[row][col] = -1; // Mark the cell to indicate it's been hit
+        qDebug() << "Player" << attackingPlayer << "hit a mine at (" << row << "," << col << ") and affected their own board.";
+
+        // Print the attacking board for debugging
+        qDebug() << "Attacking Player Board after hitting a mine:";
+        for (const auto& rowVec : attackingBoard->getGrid()) {
+            QString rowString;
+            for (int cell : rowVec) {
+                rowString += QString::number(cell) + " ";
+            }
+            qDebug() << rowString;
+        }
+
+    } else {
+        // Handle regular attack logic
+        if (cellValue > 0) {
+            // Hit a ship
+            defendingBoard->getGrid()[row][col] = -1; // Mark the cell as hit
+            qDebug() << "Player" << attackingPlayer << "hit a ship at (" << row << "," << col << ").";
+
+            // Add logic for checking if the ship is sunk, game over, etc.
+        } else {
+            // Missed attack
+            defendingBoard->getGrid()[row][col] = -1; // Mark the cell as miss
+            qDebug() << "Player" << attackingPlayer << "missed at (" << row << "," << col << ").";
+        }
+    }
+
+    // Add any additional logic for updating UI, switching turns, etc.
 }
 
 
@@ -211,6 +322,30 @@ void GameWindow::showPlayingWindow() {
     } else {
         qDebug() << "PlayingWindow is not initialized.";
     }
+}
+
+int GameWindow::getPlayerOneOil() const {
+    return playerOneOil;
+}
+
+void GameWindow::setPlayerOneOil(int oil) {
+    playerOneOil = oil;
+}
+
+int GameWindow::getPlayerTwoOil() const {
+    return playerTwoOil;
+}
+
+void GameWindow::setPlayerTwoOil(int oil) {
+    playerTwoOil = oil;
+}
+
+QVector<ArsenalItem>& GameWindow::getPlayerOneArsenal() {
+    return playerOneArsenal;
+}
+
+QVector<ArsenalItem>& GameWindow::getPlayerTwoArsenal() {
+    return playerTwoArsenal;
 }
 void GameWindow::triggerBotTurn() {
     if (modeChosen == 1) { // Versus Bot mode
@@ -363,7 +498,57 @@ void GameWindow::setupGridBackground() {
 }
 
 
+void GameWindow::handleArsenalSelectionComplete(int player, int remainingOil, const QVector<ArsenalItem>& selectedArsenal) {
+    qDebug() << "Arsenal selection complete for player:" << player;
+    qDebug() << "Remaining oil:" << remainingOil;
+    for (const ArsenalItem& item : selectedArsenal) {
+        qDebug() << "Arsenal item purchased:" << item.purchased << "/" << item.limit << "cost:" << item.oilCost;
+    }
 
+    // Update the corresponding player's oil and arsenal
+    if (player == 1) {
+        playerOneOil = remainingOil;
+        playerOneArsenal = selectedArsenal;
+
+        // Start Player 2's setup
+        qDebug() << "Player 1 completed arsenal selection, starting Player 2 setup";
+        player2Board.reset(); // Reset the board for Player 2 setup
+        Ship::resetIDCounter();
+
+        // Clear Player 1's DraggableButtons
+        for (auto button : findChildren<DraggableButton*>()) {
+            button->hide();
+        }
+
+        // Reinitialize the fleet for Player 2
+        initializeFleet();
+
+        // Show a message or update UI to indicate it's the second player's turn
+        ui->statusLabel->setText("Second player, set up your board!");
+        resetBlockColors();
+
+        isSecondPlayerSettingUp = true;
+
+        this->show(); // Show the GameWindow for Player 2 to set up their board
+        return; // Exit the function to wait for Player 2 to complete their setup
+    } else if (player == 2) {
+        playerTwoOil = remainingOil;
+        playerTwoArsenal = selectedArsenal;
+
+        // Proceed to the PlayingWindow
+        if (!playingWindow) {
+            qDebug() << "Creating PlayingWindow instance";
+            playingWindow = new PlayingWindow(this, this, &player1Board, &player2Board, &themeManager);
+        }
+
+        playingWindow->setWindowFlags(Qt::Window);
+        playingWindow->setWindowModality(Qt::NonModal);
+        playingWindow->show();
+        playingWindow->raise();
+        playingWindow->activateWindow();
+        qDebug() << "PlayingWindow shown and activated";
+    }
+}
 
 
 void GameWindow::handleShipDrop(DraggableButton* button) {

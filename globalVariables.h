@@ -6,8 +6,9 @@
 extern int modeChosen;
 extern Board player1Board;
 extern Board player2Board;
-
-extern bool player1Turn; // Add this line
-extern bool player2Turn; // Add this line
+extern int playerOneOil;
+extern int playerTwoOil;
+extern bool player1Turn;
+extern bool player2Turn;
 extern QVector<QPoint> shipBlockCoordinates;
 #endif // GLOBALS_H

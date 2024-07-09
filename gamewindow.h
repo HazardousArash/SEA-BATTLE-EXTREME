@@ -11,7 +11,10 @@
 #include "ui_playingwindow.h"
 #include <QTimer>
 #include "ArsenalWindow.h"
+#include <QVector>
+#include "ArsenalItem.h"
 class PlayingWindow;
+class ArsenalWindow;
 namespace Ui {
 class GameWindow;
 }
@@ -40,6 +43,17 @@ public:
     void triggerBotTurn();
     void replacer();
     void populateShipBlockCoordinates();
+    void setPlayerOneOil(int oil);
+    int getPlayerOneOil() const;
+    void setPlayerTwoOil(int oil);
+    int getPlayerTwoOil() const;
+    QVector<ArsenalItem>& getPlayerOneArsenal();
+    QVector<ArsenalItem>& getPlayerTwoArsenal();
+    QVector<ArsenalItem> playerOneArsenal;
+    QVector<ArsenalItem> playerTwoArsenal;
+    void handleArsenalSelectionComplete(int player, int remainingOil, const QVector<ArsenalItem>& selectedArsenal);
+    ArsenalWindow *arsenalWindow;
+    void processAttack(int row, int col, Board* attackingBoard, Board* defendingBoard, int attackingPlayer);
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
@@ -61,12 +75,12 @@ private:
     DraggableButton* currentShipButton = nullptr;
     std::vector<QPoint> shipBlockCoordinates;
     void showPlayingWindow();
-    ArsenalWindow *arsenalWindow;
+     bool isSecondPlayerSettingUp;
 private slots:
     void onNextButtonClicked();
     void switchToTheme1();
     void switchToTheme2();
-
+     void onArsenalSelectionComplete(int player, int oil, const QVector<ArsenalItem>& arsenal);
 signals:
     void secondPlayerSetupComplete();
 

@@ -2,33 +2,27 @@
 #include "ui_ArsenalWindow.h"
 #include <QDebug>
 #include <QFontDatabase>
+#include "globalvariables.h"
+#include "GameWindow.h"
+#include <QInputDialog>
+#include <QFormLayout>
 
-// Include your arsenal classes
-#include "ArsenalRadar.h"
-#include "ArsenalGun.h"
-#include "ArsenalShield.h"
-#include "ArsenalMissile.h"
-#include "ArsenalBomb.h"
+class GameWindow;
 
-// Add these declarations to your class definition in the header file
-struct ArsenalItem {
-    int purchased;
-    int limit;
-    QLabel* label;
-    QPushButton* button;
-};
-
-ArsenalWindow::ArsenalWindow(QWidget *parent) :
+ArsenalWindow::ArsenalWindow(GameWindow* gameWindow, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ArsenalWindow),
-    themeManager() // Ensure ThemeManager is properly initialized
+    themeManager(), // Ensure ThemeManager is properly initialized
+    gameWindow(gameWindow) // Initialize gameWindow reference
 {
     ui->setupUi(this);
     setupBackground(); // Setup background first
     setupButton(); // Setup the button icon
     setupIcons(); // Setup arsenal icons
     setupCustomFont(); // Setup custom font
+    setupOilBar(); // Setup oil bar
 }
+
 
 ArsenalWindow::~ArsenalWindow()
 {
@@ -37,6 +31,39 @@ ArsenalWindow::~ArsenalWindow()
 
 QPushButton* ArsenalWindow::getStartButton() const {
     return ui->startButton;
+}
+
+void ArsenalWindow::setMode(int mode) {
+    modeChosen = mode;
+}
+
+void ArsenalWindow::setPlayer(int player) {
+    currentPlayer = player;
+    resetArsenal(); // Reset arsenal items for the new player
+
+    // Hide all labels and buttons
+    for (const QString& iconName : {"radarArsenal", "gunArsenal", "shieldArsenal", "missileArsenal", "bombArsenal"}) {
+        for (int p = 1; p <= 2; ++p) {
+            QLabel* label = findChild<QLabel*>(QString("label_%1_%2").arg(p).arg(iconName));
+            QPushButton* button = findChild<QPushButton*>(QString("button_%1_%2").arg(p).arg(iconName));
+            if (label) label->setVisible(p == player);
+            if (button) button->setVisible(p == player);
+        }
+    }
+}
+
+
+void ArsenalWindow::setOil(int oil) {
+    if (currentPlayer == 1) {
+        gameWindow->setPlayerOneOil(oil);
+    } else if (currentPlayer == 2) {
+        gameWindow->setPlayerTwoOil(oil);
+    }
+    updateOil(0); // Update the oil bar display
+}
+
+int ArsenalWindow::getOil() const {
+    return currentPlayer == 1 ? gameWindow->getPlayerOneOil() : gameWindow->getPlayerTwoOil();
 }
 
 void ArsenalWindow::setupBackground() {
@@ -82,16 +109,35 @@ void ArsenalWindow::setupButton() {
 
 void ArsenalWindow::setupIcons() {
     QStringList iconNames = {"radarArsenal", "gunArsenal", "shieldArsenal", "missileArsenal", "bombArsenal"};
+    QMap<QString, int> oilCosts = {{"radarArsenal", 15}, {"gunArsenal", 12}, {"shieldArsenal", 10}, {"missileArsenal", 100}, {"bombArsenal", 5}};
+
     int yOffset = 70; // Initial Y position
     int iconSize = 60; // Icon size
     int spacing = 30; // Spacing between icons
 
+    // Clear previous icons and buttons
+    for (QLabel* label : findChildren<QLabel*>()) {
+        if (iconNames.contains(label->objectName())) {
+            delete label;
+        }
+    }
+    for (QPushButton* button : findChildren<QPushButton*>()) {
+        if (button->objectName().startsWith("button_")) {
+            delete button;
+        }
+    }
+
+    QVector<ArsenalItem>& currentArsenal = (currentPlayer == 1) ? gameWindow->getPlayerOneArsenal() : gameWindow->getPlayerTwoArsenal();
+    currentArsenal.clear(); // Clear previous items for the current player
+
     for (const QString& iconName : iconNames) {
         ArsenalItem item;
         item.purchased = 0;
-        item.limit = 2;
+        item.limit = iconName == "missileArsenal" ? 1 : 2; // Set limit to 1 for missileArsenal
+        item.oilCost = oilCosts[iconName];
 
         QLabel* iconLabel = new QLabel(this);
+        iconLabel->setObjectName(iconName); // Set unique object name
         iconLabel->setFixedSize(iconSize, iconSize);
         iconLabel->setStyleSheet("background: transparent;"); // Remove background
         QString iconPath = themeManager.getIconPath(iconName);
@@ -113,24 +159,92 @@ void ArsenalWindow::setupIcons() {
         iconLabel->move(30, yOffset);
         qDebug() << "Icon" << iconName << "positioned at (" << 30 << ", " << yOffset << ").";
 
-        item.label = new QLabel(QString("%1/%2 +").arg(item.purchased).arg(item.limit), this);
+        item.label = new QLabel(QString("0/%2 ").arg(item.limit), this);
+        item.label->setObjectName("label_" + iconName); // Set unique object name for label
         item.label->move(100, yOffset + 15); // Position the label
         item.label->setStyleSheet("font: 20pt; color: black;"); // Adjust the style as needed
 
         item.button = new QPushButton("+", this);
+        item.button->setObjectName("button_" + iconName); // Set unique object name for button
         item.button->setFixedSize(30, 30);
         item.button->move(170, yOffset + 15); // Position the button
-        connect(item.button, &QPushButton::clicked, this, [this, &item]() {
-            if (item.purchased < item.limit) {
-                item.purchased++;
-                item.label->setText(QString("%1/%2 +").arg(item.purchased).arg(item.limit));
+
+        // Copy the item for use in the lambda
+        ArsenalItem* itemPtr = new ArsenalItem(item);
+
+        connect(item.button, &QPushButton::clicked, this, [this, itemPtr, iconName]() mutable {
+            int& currentOil = (currentPlayer == 1) ? playerOneOil : playerTwoOil;
+            qDebug() << "Button clicked for" << iconName << "Current oil:" << currentOil << "Oil cost:" << itemPtr->oilCost;
+            if (itemPtr->purchased < itemPtr->limit && currentOil >= itemPtr->oilCost) {
+                itemPtr->purchased++;
+                updateOil(-itemPtr->oilCost);
+                itemPtr->label->setText(QString("%1/%2 ").arg(itemPtr->purchased).arg(itemPtr->limit));
+                qDebug() << iconName << "purchased: " << itemPtr->purchased;
+
+                // Create objects based on the iconName
+                if (iconName == "radarArsenal") {
+                    ArsenalRadar* radar = new ArsenalRadar();
+                    qDebug() << "Created ArsenalRadar object.";
+                } else if (iconName == "gunArsenal") {
+                    ArsenalGun* gun = new ArsenalGun();
+                    qDebug() << "Created ArsenalGun object.";
+                } else if (iconName == "shieldArsenal") {
+                    ArsenalShield* shield = new ArsenalShield();
+                    qDebug() << "Created ArsenalShield object.";
+                } else if (iconName == "missileArsenal") {
+                    ArsenalMissile* missile = new ArsenalMissile();
+                    qDebug() << "Created ArsenalMissile object.";
+                } else if (iconName == "bombArsenal") {
+                    ArsenalBomb* bomb = new ArsenalBomb();
+                    qDebug() << "Created ArsenalBomb object.";
+                    // Show the coordinate dialog for bomb placement
+                    showMineCoordinateDialog(*itemPtr);
+                }
+
+                if (currentPlayer == 1) {
+                    gameWindow->getPlayerOneArsenal().append(*itemPtr);
+                } else if (currentPlayer == 2) {
+                    gameWindow->getPlayerTwoArsenal().append(*itemPtr);
+                }
+            } else {
+                qDebug() << "Cannot purchase" << iconName << "either limit reached or insufficient oil.";
             }
         });
 
         yOffset += iconSize + spacing; // Update the yOffset for the next icon
 
-        arsenalItems.append(item); // Add the item to the list
+        currentArsenal.append(item); // Add item to the current player's arsenal list
     }
+}
+
+
+void ArsenalWindow::setupOilBar() {
+    oilBar = new QProgressBar(this);
+    oilBar->setRange(0, 220);
+    oilBar->setValue(getOil()); // Start with the current player's oil
+    oilBar->setFormat("%v"); // Display the current oil value
+    oilBar->setGeometry(20, 50, 200, 30); // Position the bar at the top left of the window
+    oilBar->setStyleSheet(
+        "QProgressBar {"
+        "border: 2px solid grey; "
+        "border-radius: 5px; "
+        "text-align: center; "
+        "color: white;" // Set the text color to white
+        "}"
+        "QProgressBar::chunk {"
+        "background-color: #2E0854; " // Darker purple color
+        "width: 20px; "
+        "}"
+        );
+    oilBar->show();
+    qDebug() << "Oil bar set up successfully with initial value:" << getOil();
+}
+
+void ArsenalWindow::updateOil(int amount) {
+    int& currentOil = (currentPlayer == 1) ? playerOneOil : playerTwoOil;
+    currentOil += amount;
+    oilBar->setValue(currentOil);
+    qDebug() << "Oil updated. Current oil:" << currentOil;
 }
 
 void ArsenalWindow::setupCustomFont() {
@@ -150,7 +264,101 @@ void ArsenalWindow::setupCustomFont() {
 }
 
 void ArsenalWindow::onStartButtonClicked() {
-    // Logic for what happens when the next button is clicked
     qDebug() << "Next button in ArsenalWindow clicked";
-    // For example, show the next window or close the current one
+    QVector<ArsenalItem> selectedArsenal = (currentPlayer == 1) ? playerOneArsenal : playerTwoArsenal;
+    int remainingOil = (currentPlayer == 1) ? playerOneOil : playerTwoOil;
+
+    // Emit the signal with the player number, remaining oil, and selected arsenal items
+    emit arsenalSelectionComplete(currentPlayer, remainingOil, selectedArsenal);
+
+    // Close the ArsenalWindow
+    this->close();
 }
+
+void ArsenalWindow::resetArsenal() {
+    if (currentPlayer == 1) {
+        playerOneArsenal.clear();
+    } else if (currentPlayer == 2) {
+        playerTwoArsenal.clear();
+    }
+
+    // Clear existing widgets to prevent overlap and persistence
+    QList<QLabel*> labels = findChildren<QLabel*>();
+    for (QLabel* label : labels) {
+        if (label->objectName().startsWith("label_") || label->objectName().startsWith("radarArsenal") ||
+            label->objectName().startsWith("gunArsenal") || label->objectName().startsWith("shieldArsenal") ||
+            label->objectName().startsWith("missileArsenal") || label->objectName().startsWith("bombArsenal")) {
+            delete label;
+        }
+    }
+
+    QList<QPushButton*> buttons = findChildren<QPushButton*>();
+    for (QPushButton* button : buttons) {
+        if (button->objectName().startsWith("button_")) {
+            delete button;
+        }
+    }
+
+    // Resetting oil
+    oilBar->setValue(currentPlayer == 1 ? gameWindow->getPlayerOneOil() : gameWindow->getPlayerTwoOil());
+
+    setupIcons(); // Re-setup icons
+}
+
+void ArsenalWindow::showMineCoordinateDialog(ArsenalItem& item) {
+    bool validInput = false;
+    while (!validInput) {
+        QDialog dialog(this);
+        dialog.setWindowTitle("Enter Coordinates for Mine Placement");
+        QVBoxLayout layout(&dialog);
+
+        QFormLayout formLayout;
+        QLineEdit rowInput;
+        QLineEdit colInput;
+        formLayout.addRow("Row:", &rowInput);
+        formLayout.addRow("Col:", &colInput);
+        layout.addLayout(&formLayout);
+
+        QHBoxLayout buttonLayout;
+        QPushButton okButton("OK");
+        buttonLayout.addWidget(&okButton);
+        layout.addLayout(&buttonLayout);
+
+        connect(&okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+
+        if (dialog.exec() == QDialog::Accepted) {
+            int row = rowInput.text().toInt();
+            int col = colInput.text().toInt();
+
+            Board* playerBoard = (currentPlayer == 1) ? &player1Board : &player2Board;
+
+            // Check if the coordinates are within bounds and the cell is empty
+            if (row >= 0 && row < playerBoard->getGrid().size() && col >= 0 && col < playerBoard->getGrid()[0].size() && playerBoard->getGrid()[row][col] == 0) {
+                playerBoard->getGrid()[row][col] = 101;
+                qDebug() << "Mine placed at (" << row << "," << col << ") on player" << currentPlayer << "board.";
+
+                // Print the board for debugging
+                qDebug() << "Current Board State:";
+                for (const auto& rowVec : playerBoard->getGrid()) {
+                    QString rowString;
+                    for (int cell : rowVec) {
+                        rowString += QString::number(cell) + " ";
+                    }
+                    qDebug() << rowString;
+                }
+                validInput = true;
+            } else {
+                QMessageBox::warning(this, "Invalid Input", "Invalid coordinates or cell is not empty. Please try again.");
+            }
+        }
+    }
+}
+
+bool ArsenalWindow::validateMineCoordinate(int row, int col) {
+    Board* playerBoard = currentPlayer == 1 ? &player1Board : &player2Board;
+    return playerBoard->getCell(row, col) == 0; // Ensure the cell is empty
+}
+
+
+
+

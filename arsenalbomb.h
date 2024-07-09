@@ -29,4 +29,4 @@ private:
     void updateLabel();
 };
 
-#endif // ARSENALBOMB_H
+#endif

@@ -14,6 +14,7 @@ SOURCES += \
     ArsenalWindow.cpp \
     arsenalbomb.cpp \
     arsenalgun.cpp \
+    arsenalitem.cpp \
     arsenalmissile.cpp \
     arsenalradar.cpp \
     arsenalshield.cpp \
@@ -35,6 +36,7 @@ HEADERS += \
     ArsenalWindow.h \
     arsenalbomb.h \
     arsenalgun.h \
+    arsenalitem.h \
     arsenalmissile.h \
     arsenalradar.h \
     arsenalshield.h \

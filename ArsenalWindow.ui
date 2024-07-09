@@ -74,7 +74,7 @@ border: 5px solid rgb(235, 0, 0);
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string> </string>
    </property>
   </widget>
   <widget class="QLabel" name="missileArsenal">
@@ -87,7 +87,7 @@ border: 5px solid rgb(235, 0, 0);
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string> </string>
    </property>
   </widget>
   <widget class="QLabel" name="radarArsenal">
@@ -100,7 +100,7 @@ border: 5px solid rgb(235, 0, 0);
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>   </string>
    </property>
   </widget>
   <widget class="QLabel" name="gunArsenal">
@@ -113,7 +113,7 @@ border: 5px solid rgb(235, 0, 0);
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string> </string>
    </property>
   </widget>
   <widget class="QLabel" name="shieldArsenal">
@@ -126,7 +126,7 @@ border: 5px solid rgb(235, 0, 0);
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string> </string>
    </property>
   </widget>
  </widget>
