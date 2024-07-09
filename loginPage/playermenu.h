@@ -21,6 +21,8 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_chPb_clicked();
+
 private:
     Ui::playerMenu *ui;
 };

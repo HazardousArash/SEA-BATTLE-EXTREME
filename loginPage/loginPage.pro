@@ -14,7 +14,8 @@ SOURCES += \
     mainwindow.cpp \
     playermenu.cpp \
     singu.cpp \
-    statsmenu.cpp
+    statsmenu.cpp \
+    storycharecters.cpp
 
 
 HEADERS += \
@@ -22,7 +23,8 @@ HEADERS += \
     mainwindow.h \
     playermenu.h \
     singu.h \
-    statsmenu.h
+    statsmenu.h \
+    storycharecters.h
 
 QT += sql
 
@@ -32,7 +34,8 @@ FORMS += \
     mainwindow.ui \
     playermenu.ui \
     singu.ui \
-    statsmenu.ui
+    statsmenu.ui \
+    storycharecters.ui
 
 FORMS +=
 
@@ -48,6 +51,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    photos/background.jpg \
     photos/new.jpg
 
 RESOURCES += \

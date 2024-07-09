@@ -14,16 +14,23 @@
    <string>MainWindow</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);
+   <string notr="true">
+color:rgb(255, 0, 0);
 font: italic 18pt &quot;Segoe UI&quot;;
 </string>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>30</width>
+    <height>30</height>
+   </size>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="welcomeLabel">
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>20</y>
+      <y>30</y>
       <width>277</width>
       <height>151</height>
      </rect>
@@ -37,7 +44,8 @@ font: italic 18pt &quot;Segoe UI&quot;;
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);
+     <string notr="true">
+color:rgb(0, 0, 0);
 font: italic 18pt &quot;Segoe UI&quot;;
 </string>
     </property>
@@ -53,48 +61,57 @@ font: italic 18pt &quot;Segoe UI&quot;;
      <rect>
       <x>210</x>
       <y>160</y>
-      <width>291</width>
+      <width>331</width>
       <height>131</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="1">
+     <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="styleSheet">
-        <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);
-font: 12pt &quot;Segoe UI&quot;;</string>
+        <string notr="true">
+color:rgb(0, 0, 0);
+font: 16pt &quot;Segoe UI&quot;;</string>
        </property>
        <property name="text">
         <string>User Name:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="2">
-      <widget class="QLineEdit" name="passLine">
+     <item row="0" column="2">
+      <widget class="QLineEdit" name="userLine">
        <property name="styleSheet">
-        <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0)
-</string>
-       </property>
-       <property name="echoMode">
-        <enum>QLineEdit::Password</enum>
+        <string notr="true">background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item row="1" column="0">
       <widget class="QLabel" name="label_2">
        <property name="styleSheet">
-        <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);
-font: 12pt &quot;Segoe UI&quot;;</string>
+        <string notr="true">color:rgb(0, 0, 0);
+font: 16pt &quot;Segoe UI&quot;;;</string>
        </property>
        <property name="text">
         <string>PassWord:</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QLineEdit" name="userLine">
+     <item row="1" column="2">
+      <widget class="QLineEdit" name="passLine">
        <property name="styleSheet">
-        <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0)</string>
+        <string notr="true">background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;
+</string>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
        </property>
       </widget>
      </item>
@@ -106,65 +123,130 @@ font: 12pt &quot;Segoe UI&quot;;</string>
       <x>280</x>
       <y>400</y>
       <width>171</width>
-      <height>41</height>
+      <height>61</height>
      </rect>
     </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe UI</family>
+      <pointsize>16</pointsize>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>ArrowCursor</cursorShape>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
     <property name="styleSheet">
-     <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);
-font: 16pt &quot;Segoe UI&quot;;</string>
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 16pt &quot;Segoe UI&quot;;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
     </property>
     <property name="text">
      <string>Login</string>
     </property>
    </widget>
-   <widget class="QCommandLinkButton" name="signupButt">
+   <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>140</x>
-      <y>350</y>
-      <width>221</width>
+      <x>0</x>
+      <y>-30</y>
+      <width>761</width>
+      <height>651</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/photos/background.jpg);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="newRc.qrc">:/photos/background.jpg</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="signupButt">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>330</y>
+      <width>211</width>
       <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);
-font: 10pt &quot;Segoe UI&quot;;</string>
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 12pt &quot;Segoe UI&quot;;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
     </property>
     <property name="text">
      <string>don't have an account?</string>
     </property>
+    <property name="autoDefault">
+     <bool>false</bool>
+    </property>
+    <property name="default">
+     <bool>false</bool>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
    </widget>
-   <widget class="QCommandLinkButton" name="commandLinkButton">
+   <widget class="QPushButton" name="commandLinkButton">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>350</y>
-      <width>183</width>
+      <x>390</x>
+      <y>330</y>
+      <width>171</width>
       <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color:rgb(0, 255, 127);color:rgb(255, 0, 0);
-font: 10pt &quot;Segoe UI&quot;;
-</string>
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 12pt &quot;Segoe UI&quot;;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
     </property>
     <property name="text">
      <string>forgot password?</string>
     </property>
    </widget>
+   <zorder>label_3</zorder>
+   <zorder>welcomeLabel</zorder>
+   <zorder>gridLayoutWidget</zorder>
+   <zorder>loginButt</zorder>
+   <zorder>signupButt</zorder>
+   <zorder>commandLinkButton</zorder>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>752</width>
-     <height>45</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="newRc.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -2,6 +2,7 @@
 #include "ui_playermenu.h"
 #include "statsmenu.h"
 #include "mainwindow.h"
+#include "storycharecters.h"
 
 playerMenu::playerMenu(QString userNAme,QWidget *parent)
     : QMainWindow(parent)
@@ -29,3 +30,11 @@ void playerMenu::on_pushButton_clicked()
     this->close();
     newPage->show();
 }
+
+void playerMenu::on_chPb_clicked()
+{
+    storyCharecters *newPage=new storyCharecters(userName);
+    this->close();
+    newPage->show();
+}
+
