@@ -367,6 +367,9 @@ void GameWindow::triggerBotTurn() {
         int selectedRow, selectedCol;
         int result = enemyBoard->botAi(*myBoard, selectedRow, selectedCol); // Use myBoard directly
 
+        // Debug: Check the selected cell and result
+        qDebug() << "Bot selected (" << selectedRow << ", " << selectedCol << "), result: " << result;
+
         // Check if bot hits a shielded row
         if (playerOneShieldedRows.first == selectedRow || playerOneShieldedRows.second == selectedRow) {
             QMessageBox::information(this, "Bot hit a shield!", "Bot hit a shield! His turn is over.");
@@ -492,6 +495,7 @@ void GameWindow::triggerBotTurn() {
         }
     }
 }
+
 
 
 

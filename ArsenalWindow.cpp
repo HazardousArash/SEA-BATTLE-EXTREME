@@ -212,6 +212,12 @@ void ArsenalWindow::setupIcons() {
                 } else if (iconName == "missileArsenal") {
                     ArsenalMissile* missile = new ArsenalMissile();
                     qDebug() << "Created ArsenalMissile object.";
+                    if (currentPlayer == 1 || currentPlayer ==0) {
+                        playerOneNumberOfMissiles++;
+                    } else if (currentPlayer == 2) {
+                        playerTwoNumberOfMissiles++;
+                    }
+                    qDebug() << "Player " << currentPlayer << " now has " << ((currentPlayer == 1) ? playerOneNumberOfMissiles : playerTwoNumberOfMissiles) << " missiles.";
                 } else if (iconName == "bombArsenal") {
                     ArsenalBomb* bomb = new ArsenalBomb();
                     qDebug() << "Created ArsenalBomb object.";
@@ -407,7 +413,7 @@ void ArsenalWindow::showShieldCoordinateDialog() {
 
             // Validate the rows
             if (row1 >= 0 && row1 < 10 && row2 >= 0 && row2 < 10 && row1 != row2) {
-                if (currentPlayer == 1) {
+                if (currentPlayer == 1||currentPlayer==0) {
                     gameWindow->playerOneShieldedRows = qMakePair(row1, row2);
                 } else {
                     gameWindow->playerTwoShieldedRows = qMakePair(row1, row2);

@@ -15,3 +15,5 @@ int humanRadarCounts = 0;
  QPair<int, int> playerTwoShieldedRows = qMakePair(-10, -10);
  int playerOneNumberOfGuns=0;
  int playerTwoNumberOfGuns=0;
+ int playerOneNumberOfMissiles=0;
+ int playerTwoNumberOfMissiles=0;

@@ -51,7 +51,7 @@ private slots:
     void markSingleShipBlockGreen(int row, int col) ;
     void makeShipBlocksWhite(int shipID);
     void onRadarButtonClicked();
-
+    void onMissileButtonClicked();
 public slots:
     //void clearShipBlockCrosses(int shipID);
     void makeShipBlocksPurple(int shipID, const QString& boardName);

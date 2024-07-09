@@ -16,6 +16,7 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QInputDialog>
+#include <algorithm>
 PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myBoard, Board* enemyBoard, ThemeManager* themeManager)
     : QWidget(parent),
     ui(new Ui::PlayingWindow),
@@ -41,6 +42,8 @@ PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myB
 
     connect(ui->gunButton, &QPushButton::clicked, this, &PlayingWindow::onGunButtonClicked);
     connect(ui->radarButton, &QPushButton::clicked, this, &PlayingWindow::onRadarButtonClicked);
+    connect(ui->missileButton, &QPushButton::clicked, this, &PlayingWindow::onMissileButtonClicked);
+
     if (this->myBoard) {
         qDebug() << "My Board size:" << this->myBoard->getGrid().size();
     }
@@ -395,11 +398,10 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
     if (player2Turn && modeChosen != 1) {
         qDebug() << "Player 2 clicked on myBoard at (" << row << ", " << col << ")";
 
-        if (row == gameWindow->playerOneShieldedRows.first || row == gameWindow->playerOneShieldedRows.second) {
-            QMessageBox::information(this, "Shield Activated", "Shield activated! Player 2's turn is over.");
-            qDebug() << "Shield activated for player 1 at row" << row;
-            // Reset the shield rows
-            gameWindow->playerOneShieldedRows = qMakePair(-1, -1);
+        // Check if player 2 hits a shielded row
+        if (gameWindow->playerTwoShieldedRows.first == row || gameWindow->playerTwoShieldedRows.second == row) {
+            QMessageBox::information(this, "Shield activated!", "Shield activated! Player 2's turn is over.");
+            gameWindow->playerTwoShieldedRows = qMakePair(-1, -1); // Shield expires after first hit
             player1Turn = true;
             player2Turn = false;
             return;
@@ -413,7 +415,7 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
             ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_%1_%2").arg(row).arg(col));
             if (cell) {
                 cell->setStyleSheet("background: rgba(255, 0, 0, 0.5); border: 1px solid gray;");  // Glassy red
-                cell->setEnabled(false); // Make it unclickable
+                cell->setEnabled(false);  // Make it unclickable
             }
             // Switch turns
             qDebug() << "Player 2 missed. Switching to player 1's turn.";
@@ -989,4 +991,88 @@ void PlayingWindow::contextMenuEvent(QContextMenuEvent* event) {
 
     contextMenu.exec(event->globalPos());
 }
+void PlayingWindow::onMissileButtonClicked() {
+    int& currentPlayerMissiles = (player1Turn) ? playerOneNumberOfMissiles : playerTwoNumberOfMissiles;
+    qDebug() << "Player" << (player1Turn ? 1 : 2) << "tries to use a missile. Missiles left:" << currentPlayerMissiles;
+
+    if (currentPlayerMissiles <= 0) {
+        QMessageBox::information(this, "No Missiles", "You have no missiles left to use.");
+        return;
+    }
+
+    bool ok;
+    int row = QInputDialog::getInt(this, "Enter Row", "Row:", 0, 0, 9, 1, &ok);
+    if (!ok) return;
+    int col = QInputDialog::getInt(this, "Enter Column", "Column:", 0, 0, 9, 1, &ok);
+    if (!ok) return;
+
+    qDebug() << "Missile target coordinates: (" << row << ", " << col << ")";
+
+    // Determine the correct target board
+    Board* targetBoard;
+    if (modeChosen == 1) {
+        targetBoard = enemyBoard;
+    } else {
+        targetBoard = player1Turn ? enemyBoard : myBoard;
+    }
+
+    // Debugging: Print the target board state
+    qDebug() << "Target Board State:";
+    for (const auto& rowVec : targetBoard->getGrid()) {
+        QString rowString;
+        for (int cell : rowVec) {
+            rowString += QString::number(cell) + " ";
+        }
+        qDebug() << rowString;
+    }
+
+    // Check boundaries for the 5x5 area
+    int startRow = std::max(0, row - 2);
+    int endRow = std::min(row + 2, static_cast<int>(targetBoard->getGrid().size()) - 1);
+    int startCol = std::max(0, col - 2);
+    int endCol = std::min(col + 2, static_cast<int>(targetBoard->getGrid()[0].size()) - 1);
+
+    // Apply missile effect
+    for (int i = startRow; i <= endRow; ++i) {
+        for (int j = startCol; j <= endCol; ++j) {
+            int cellValue = targetBoard->getCell(i, j);
+            qDebug() << "Checking cell (" << i << ", " << j << ") with value" << cellValue;
+
+            // 5x5 area: Black out and mark as hit
+            if (cellValue > 0 && cellValue <= 10) {
+                targetBoard->getGrid()[i][j] *= -1; // Mark as hit
+                qDebug() << "Cell (" << i << ", " << j << ") marked as hit in 5x5 area.";
+            } else if (cellValue == 0) {
+                targetBoard->getGrid()[i][j] = -1; // Mark as miss
+                qDebug() << "Cell (" << i << ", " << j << ") marked as miss in 5x5 area.";
+            }
+            ClickableLabel* cell = (modeChosen == 1 || player1Turn) ?
+                                       findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(i).arg(j)) :
+                                       findChild<ClickableLabel*>(QString("cell_%1_%2").arg(i).arg(j));
+            if (cell) {
+                cell->setStyleSheet("background: black; border: 1px solid gray;");
+                cell->setEnabled(false);
+            }
+        }
+    }
+
+    if (player1Turn) {
+        playerOneNumberOfMissiles--; // Decrement the missile count for player 1
+        qDebug() << "Player 1 now has" << playerOneNumberOfMissiles << "missiles left.";
+    } else {
+        playerTwoNumberOfMissiles--; // Decrement the missile count for player 2
+        qDebug() << "Player 2 now has" << playerTwoNumberOfMissiles << "missiles left.";
+    }
+
+    if (modeChosen == 1 && player1Turn) {
+        player1Turn = false;
+        player2Turn = true;
+        QTimer::singleShot(1000, gameWindow, &GameWindow::triggerBotTurn); // Bot's turn
+    } else {
+        player1Turn = !player1Turn;
+        player2Turn = !player2Turn;
+    }
+}
+
+
 

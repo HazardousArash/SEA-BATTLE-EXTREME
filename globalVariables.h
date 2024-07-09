@@ -19,4 +19,7 @@ extern QPair<int, int> playerOneShieldedRows;
 extern QPair<int, int> playerTwoShieldedRows;
 extern int playerOneNumberOfGuns;
 extern int playerTwoNumberOfGuns;
+extern int playerOneNumberOfMissiles;
+extern int playerTwoNumberOfMissiles;
+
 #endif // GLOBALS_H

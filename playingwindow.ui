@@ -78,11 +78,25 @@
     <string>PushButton</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="missileButton">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>660</y>
+     <width>83</width>
+     <height>29</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PushButton</string>
+   </property>
+  </widget>
   <zorder>waterBackground</zorder>
   <zorder>myBoard</zorder>
   <zorder>enemyBoard</zorder>
   <zorder>radarButton</zorder>
   <zorder>gunButton</zorder>
+  <zorder>missileButton</zorder>
  </widget>
  <resources/>
  <connections/>
