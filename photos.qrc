@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>photos/Anne.jpg</file>
+        <file>photos/background.jpg</file>
+        <file>photos/Bounty Hunter.jpg</file>
+        <file>photos/Deputy.jpg</file>
+        <file>photos/John.jpg</file>
+        <file>photos/new.jpg</file>
+        <file>photos/The King.jpg</file>
+        <file>photos/The Prince.jpg</file>
+    </qresource>
+</RCC>

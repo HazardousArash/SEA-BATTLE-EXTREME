@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>playerMenu</class>
+ <widget class="QMainWindow" name="playerMenu">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>606</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">color:rgb(0, 0, 0);
+font: italic 18pt &quot;Segoe UI&quot;;
+</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="vsbbotPB">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>150</y>
+      <width>211</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 18pt &quot;Segoe UI&quot;;    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>VS BOT</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="CoPB">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>230</y>
+      <width>211</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 18pt &quot;Segoe UI&quot;;    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>CO-OP</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="onlinePB">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>310</y>
+      <width>211</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 18pt &quot;Segoe UI&quot;;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Online</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="statsPB">
+    <property name="geometry">
+     <rect>
+      <x>500</x>
+      <y>390</y>
+      <width>211</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 18pt &quot;Segoe UI&quot;;    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Stats</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>470</y>
+      <width>191</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 18pt &quot;Segoe UI&quot;;    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Main Menu</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="STPb">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>70</y>
+      <width>211</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 18pt &quot;Segoe UI&quot;;    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Story Mode</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>-10</y>
+      <width>831</width>
+      <height>631</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/photos/background.jpg);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="newRc.qrc">:/photos/background.jpg</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="chPb">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>390</y>
+      <width>251</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 18pt &quot;Segoe UI&quot;;    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Story characters</string>
+    </property>
+   </widget>
+   <zorder>label</zorder>
+   <zorder>vsbbotPB</zorder>
+   <zorder>CoPB</zorder>
+   <zorder>onlinePB</zorder>
+   <zorder>statsPB</zorder>
+   <zorder>pushButton</zorder>
+   <zorder>STPb</zorder>
+   <zorder>chPb</zorder>
+  </widget>
+ </widget>
+ <resources>
+  <include location="newRc.qrc"/>
+ </resources>
+ <connections/>
+</ui>

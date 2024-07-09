@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>statsMenu</class>
+ <widget class="QMainWindow" name="statsMenu">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">color:rgb(0, 0, 0);
+font: 18pt &quot;Segoe UI&quot;;</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPlainTextEdit" name="plainTextEdit">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>100</y>
+      <width>531</width>
+      <height>251</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 18pt &quot;Segoe UI&quot;;    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="plainText">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>400</y>
+      <width>231</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 18pt &quot;Segoe UI&quot;;    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Previous Menu</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>811</width>
+      <height>641</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/photos/background.jpg);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="newRc.qrc">:/photos/background.jpg</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <zorder>label</zorder>
+   <zorder>plainTextEdit</zorder>
+   <zorder>pushButton</zorder>
+  </widget>
+ </widget>
+ <resources>
+  <include location="newRc.qrc"/>
+ </resources>
+ <connections/>
+</ui>

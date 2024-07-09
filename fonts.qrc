@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>fonts/rdr.ttf</file>
+        <file>fonts/rouble.otf</file>
+        <file>fonts/seabattle.ttf</file>
+        <file>fonts/seabattle_asia.ttf</file>
+    </qresource>
+</RCC>
