@@ -3,34 +3,8 @@
 #include "statsmenu.h"
 #include "mainwindow.h"
 #include "storycharecters.h"
-#include "globalVariables.h"
-#include "Game.h"
-#include <QSqlQuery>
-#include <QSqlError>
-void extractctOilDB(){
-    QSqlQuery query;
-    query.prepare("SELECT * FROM users WHERE username = :username");
-    query.bindValue(":username", globalUserName);
-    if(query.exec()){
-        if(query.next()){
-            qDebug()<<query.value(16).toInt();
-         playerOneOil= query.value(16).toInt();
-            qDebug()<<playerOneOil;
+#include "onlinemenu.h"
 
-            playerOneOil+=30;
-            if(playerOneOil>220)
-                playerOneOil=220;
-            qDebug()<<"success";
-            qDebug()<< playerOneOil;
-        }
-        else{
-            qDebug() << "error finding user"<<query.lastError().text();
-        }
-    }
-    else{
-        qDebug()<<query.lastError().text();
-    }
-}
 playerMenu::playerMenu(QString userNAme,QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::playerMenu)
@@ -66,23 +40,10 @@ void playerMenu::on_chPb_clicked()
 }
 
 
-void playerMenu::on_vsbbotPB_clicked()
+void playerMenu::on_onlinePB_clicked()
 {
-    globalUserName=userName;
-    extractctOilDB();
+    onlineMenu *newPage=new onlineMenu(userName);
     this->close();
-    modeChosen=1;
-    runGame();
-
-}
-
-
-void playerMenu::on_CoPB_clicked()
-{
-    globalUserName=userName;
-    playerOneOil=220;
-    this->close();
-    modeChosen=2;
-    runGame();
+    newPage->show();
 }
 

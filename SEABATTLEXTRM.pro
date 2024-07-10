@@ -1,6 +1,6 @@
 QT       += core gui
-QT += sql
-
+QT       += sql
+QT       +=core network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -21,19 +21,24 @@ SOURCES += \
     arsenalshield.cpp \
     board.cpp \
     clickablelabel.cpp \
+    clientProject.cpp \
+    clientmenu.cpp \
     computerplayer.cpp \
     draggablebutton.cpp \
     forgetpassword.cpp \
     gamewindow.cpp \
     globalVariables.cpp \
+    hostmenu.cpp \
     humanplayer.cpp \
     login.cpp \
     main.cpp \
     mainwindow.cpp \
+    onlinemenu.cpp \
     player.cpp \
     playermenu.cpp \
     playingwindow.cpp \
     releasablelabel.cpp \
+    serverproject.cpp \
     ship.cpp \
     singu.cpp \
     statsmenu.cpp \
@@ -51,18 +56,23 @@ HEADERS += \
     arsenalshield.h \
     board.h \
     clickablelabel.h \
+    clientProject.h \
+    clientmenu.h \
     computerplayer.h \
     draggablebutton.h \
     forgetpassword.h \
     gamewindow.h \
     globalVariables.h \
+    hostmenu.h \
     humanplayer.h \
     login.h \
     mainwindow.h \
+    onlinemenu.h \
     player.h \
     playermenu.h \
     playingwindow.h \
     releasablelabel.h \
+    serverproject.h \
     ship.h \
     singu.h \
     statsmenu.h \
@@ -71,11 +81,16 @@ HEADERS += \
 
 FORMS += \
     ArsenalWindow.ui \
+    clientProject.ui \
+    clientmenu.ui \
     forgetpassword.ui \
     gamewindow.ui \
+    hostmenu.ui \
     mainwindow.ui \
+    onlinemenu.ui \
     playermenu.ui \
     playingwindow.ui \
+    serverproject.ui \
     singu.ui \
     statsmenu.ui \
     storycharecters.ui

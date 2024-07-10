@@ -23,9 +23,7 @@ private slots:
 
     void on_chPb_clicked();
 
-    void on_vsbbotPB_clicked();
-
-    void on_CoPB_clicked();
+    void on_onlinePB_clicked();
 
 private:
     Ui::playerMenu *ui;

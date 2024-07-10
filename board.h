@@ -16,6 +16,7 @@ public:
 
 public:
     explicit Board(int size = 10);
+     Board(const std::vector<std::vector<int>>& grid);
     Board(const Board& other); // Copy constructor
     bool canPlaceShip(const Ship& ship, int startX, int startY);
     void placeShip(const Ship& ship, int startX, int startY);

@@ -358,11 +358,8 @@ void ArsenalWindow::showMineCoordinateDialog(ArsenalItem& item) {
 
             // Check if the coordinates are within bounds and the cell is empty
             if (row >= 0 && row < playerBoard->getGrid().size() && col >= 0 && col < playerBoard->getGrid()[0].size() && playerBoard->getGrid()[row][col] == 0) {
-                playerBoard->getGrid()[row][col] = -101;
+                playerBoard->getGrid()[row][col] = 101;
                 qDebug() << "Mine placed at (" << row << "," << col << ") on player" << currentPlayer << "board.";
-
-                // Store the coordinates in humanBombs
-                gameWindow->humanBombs.append(qMakePair(row, col));
 
                 // Print the board for debugging
                 qDebug() << "Current Board State:";
@@ -380,6 +377,7 @@ void ArsenalWindow::showMineCoordinateDialog(ArsenalItem& item) {
         }
     }
 }
+
 
 bool ArsenalWindow::validateMineCoordinate(int row, int col) {
     Board* playerBoard = currentPlayer == 1 ? &player1Board : &player2Board;

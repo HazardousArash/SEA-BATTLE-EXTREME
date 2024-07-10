@@ -23,6 +23,52 @@
 #include <QTimer>
 #include <QRandomGenerator>
 #include "playermenu.h"
+QVector<QVector<int>> convertBoardToQVector(const std::vector<std::vector<int>>& board) {
+    QVector<QVector<int>> qBoard;
+    for (const auto& row : board) {
+        QVector<int> qRow;
+        for (const auto& cell : row) {
+            qRow.append(cell);
+        }
+        qBoard.append(qRow);
+    }
+    return qBoard;
+}
+
+std::vector<std::vector<int>> convertQVectorToStdVector(const QVector<QVector<int>>& qBoard) {
+    std::vector<std::vector<int>> stdBoard;
+    for (const auto& qRow : qBoard) {
+        stdBoard.push_back(std::vector<int>(qRow.begin(), qRow.end()));
+    }
+    return stdBoard;
+}
+
+QVector<QVector<int>> convertToQVector(const std::vector<std::vector<int>>& vec) {
+    QVector<QVector<int>> qVec;
+    for (const auto& row : vec) {
+        QVector<int> qRow;
+        for (const auto& elem : row) {
+            qRow.append(elem);
+        }
+        qVec.append(qRow);
+    }
+    return qVec;
+}
+
+std::vector<std::vector<int>> convertToStdVector(const QVector<QVector<int>>& qVec) {
+    std::vector<std::vector<int>> vec;
+    for (const auto& qRow : qVec) {
+        std::vector<int> row;
+        for (const auto& elem : qRow) {
+            row.push_back(elem);
+        }
+        vec.push_back(row);
+    }
+    return vec;
+}
+
+
+
 int initialX = 50;
 int initialY = 50;
 GameWindow::GameWindow(QWidget *parent)
@@ -32,7 +78,8 @@ GameWindow::GameWindow(QWidget *parent)
     myBoard(new Board()),  // Initialize myBoard
     enemyBoard(new Board()),
     player1Turn(true),isSecondPlayerSettingUp(false),
-    player2Turn(false)
+    player2Turn(false),
+    isHost(false)
 {
     ui->setupUi(this);
     initializeFleet();
@@ -47,7 +94,190 @@ GameWindow::GameWindow(QWidget *parent)
     // Initialize the ArsenalWindow
     arsenalWindow = new ArsenalWindow(this);
     connect(arsenalWindow, &ArsenalWindow::arsenalSelectionComplete, this, &GameWindow::onArsenalSelectionComplete);
+
+    // Start the online game if mode is 3
+    if (modeChosen == 3) {
+        startOnlineGame();
+    }
 }
+void GameWindow::startOnlineGame() {
+    if (globalIsHost) {
+        // Host specific setup
+        connect(serverSocket, &QTcpServer::newConnection, this, [this]() {
+            clientSocket = serverSocket->nextPendingConnection();
+            connect(clientSocket, &QTcpSocket::readyRead, this, &GameWindow::receiveBoardFromClient);
+            sendBoardToClient();
+        });
+    } else {
+        // Client specific setup
+        clientSocket = new QTcpSocket(this); // Ensure clientSocket is initialized
+        connect(clientSocket, &QTcpSocket::connected, this, &GameWindow::sendBoardToServer);
+        connect(clientSocket, &QTcpSocket::readyRead, this, &GameWindow::receiveBoardFromServer);
+        clientSocket->connectToHost(QHostAddress(globalHostAddress), 12345);
+    }
+}
+
+
+void GameWindow::onConnected() {
+    qDebug() << "Connected to server.";
+    sendBoards();
+}
+void GameWindow::onReadyRead() {
+    QTcpSocket* socket = static_cast<QTcpSocket*>(globalIsHost ? static_cast<void*>(serverSocket) : static_cast<void*>(clientSocket));
+    QByteArray receivedData = socket->readAll();
+    qDebug() << "Data received";
+    QDataStream stream(receivedData);
+    QVector<QVector<int>> player1BoardQVec, player2BoardQVec;
+    stream >> player1BoardQVec >> player2BoardQVec;
+
+    // Convert QVector<QVector<int>> to std::vector<std::vector<int>>
+    std::vector<std::vector<int>> stdPlayer1Board(player1BoardQVec.size(), std::vector<int>(player1BoardQVec[0].size()));
+    std::vector<std::vector<int>> stdPlayer2Board(player2BoardQVec.size(), std::vector<int>(player2BoardQVec[0].size()));
+
+    for (int i = 0; i < player1BoardQVec.size(); ++i)
+        for (int j = 0; j < player1BoardQVec[0].size(); ++j)
+            stdPlayer1Board[i][j] = player1BoardQVec[i][j];
+
+    for (int i = 0; i < player2BoardQVec.size(); ++i)
+        for (int j = 0; j < player2BoardQVec[0].size(); ++j)
+            stdPlayer2Board[i][j] = player2BoardQVec[i][j];
+
+    if (globalIsHost) {
+        enemyBoard->grid = stdPlayer2Board;
+    } else {
+        enemyBoard->grid = stdPlayer1Board;
+    }
+    qDebug() << "Board data processed.";
+}
+
+void GameWindow::onSendData() {
+    qDebug() << "Sending data to server/client.";
+
+    QVector<QVector<int>> myBoardQVec(myBoard->size, QVector<int>(myBoard->size));
+    QVector<QVector<int>> enemyBoardQVec(enemyBoard->size, QVector<int>(enemyBoard->size));
+
+    for (int i = 0; i < myBoard->size; ++i) {
+        for (int j = 0; j < myBoard->size; ++j) {
+            myBoardQVec[i][j] = myBoard->grid[i][j];
+        }
+    }
+
+    for (int i = 0; i < enemyBoard->size; ++i) {
+        for (int j = 0; j < enemyBoard->size; ++j) {
+            enemyBoardQVec[i][j] = enemyBoard->grid[i][j];
+        }
+    }
+
+    QByteArray serializedData;
+    QDataStream stream(&serializedData, QIODevice::WriteOnly);
+    stream << myBoardQVec << enemyBoardQVec;
+
+    QTcpSocket* socket = static_cast<QTcpSocket*>(globalIsHost ? static_cast<void*>(serverSocket) : static_cast<void*>(clientSocket));
+    socket->write(serializedData);
+    qDebug() << "Data sent.";
+}
+
+void GameWindow::sendBoards() {
+    QVector<QVector<int>> player1Board(10, QVector<int>(10, 0)); // Initialize 10x10 vector
+    QVector<QVector<int>> player2Board(10, QVector<int>(10, 0)); // Initialize 10x10 vector
+
+    // Fill the vectors with actual data from myBoard and enemyBoard
+    for (int i = 0; i < myBoard->size; ++i) {
+        for (int j = 0; j < myBoard->size; ++j) {
+            player1Board[i][j] = myBoard->grid[i][j];
+        }
+    }
+
+    for (int i = 0; i < enemyBoard->size; ++i) {
+        for (int j = 0; j < enemyBoard->size; ++j) {
+            player2Board[i][j] = enemyBoard->grid[i][j];
+        }
+    }
+
+    QByteArray serializedData;
+    QDataStream stream(&serializedData, QIODevice::WriteOnly);
+    stream << player1Board << player2Board;
+
+    QTcpSocket* socket = globalIsHost ? static_cast<QTcpSocket*>(static_cast<void*>(serverSocket)) : static_cast<QTcpSocket*>(static_cast<void*>(clientSocket));
+    socket->write(serializedData);
+}
+void GameWindow::onReceiveData() {
+    QByteArray receivedData = (globalIsHost ? static_cast<QTcpSocket*>(static_cast<void*>(serverSocket)) : static_cast<QTcpSocket*>(static_cast<void*>(clientSocket)))->readAll();
+    QDataStream stream(&receivedData, QIODevice::ReadOnly);
+
+    QVector<QVector<int>> player1BoardQVec, player2BoardQVec;
+    stream >> player1BoardQVec >> player2BoardQVec;
+
+    std::vector<std::vector<int>> player1BoardVec = convertToStdVector(player1BoardQVec);
+    std::vector<std::vector<int>> player2BoardVec = convertToStdVector(player2BoardQVec);
+
+    if (globalIsHost) {
+        enemyBoard = new Board(player2BoardVec);
+        *myBoard = Board(player1BoardVec);
+    } else {
+        enemyBoard = new Board(player1BoardVec);
+        *myBoard = Board(player2BoardVec);
+    }
+
+    qDebug() << "Boards received and set up:";
+    qDebug() << "My Board:";
+    for (const auto& row : myBoard->getGrid()) {
+        QString rowString;
+        for (int cell : row) {
+            rowString += QString::number(cell) + " ";
+        }
+        qDebug() << rowString;
+    }
+
+    qDebug() << "Enemy Board:";
+    for (const auto& row : enemyBoard->getGrid()) {
+        QString rowString;
+        for (int cell : row) {
+            rowString += QString::number(cell) + " ";
+        }
+        qDebug() << rowString;
+    }
+
+    showPlayingWindow();
+}
+
+void GameWindow::onDisconnected() {
+    qDebug() << "Disconnected from server.";
+}
+
+void GameWindow::sendBoardToServer() {
+    QByteArray serializedData;
+    QDataStream stream(&serializedData, QIODevice::WriteOnly);
+    stream << convertToQVector(myBoard->getGrid()); // Assuming myBoard is a Board object with getGrid method
+    if (clientSocket) {
+        clientSocket->write(serializedData);
+    }
+}
+
+void GameWindow::sendBoardToClient() {
+    QByteArray serializedData;
+    QDataStream stream(&serializedData, QIODevice::WriteOnly);
+    stream << convertToQVector(myBoard->getGrid()); // Assuming myBoard is a Board object with getGrid method
+    if (clientSocket) {
+        clientSocket->write(serializedData);
+    }
+}
+
+void GameWindow::receiveBoardFromServer() {
+    if (clientSocket) {
+        QByteArray receivedData = clientSocket->readAll();
+        processReceivedData(receivedData);
+    }
+}
+
+void GameWindow::receiveBoardFromClient() {
+    if (clientSocket) {
+        QByteArray receivedData = clientSocket->readAll();
+        processReceivedData(receivedData);
+    }
+}
+
+
 void GameWindow::onArsenalSelectionComplete(int player, int oil, const QVector<ArsenalItem>& arsenal) {
     if (player == 1) {
         playerOneOil = oil;
@@ -273,45 +503,19 @@ void GameWindow::onNextButtonClicked() {
         }
     }
 }
-void GameWindow::processAttack(int row, int col, Board* attackingBoard, Board* defendingBoard, int attackingPlayer) {
-    int cellValue = defendingBoard->getGrid()[row][col];
+void GameWindow::processReceivedData(const QByteArray& data) {
+    QDataStream stream(data);
+    QVector<QVector<int>> receivedBoard;
+    stream >> receivedBoard;
 
-    if (cellValue == -101) {
-        // A mine was hit
-        QMessageBox::information(this, "Don't hit yourself!", "Don't hit yourself!");
+    std::vector<std::vector<int>> stdBoard = convertQVectorToStdVector(receivedBoard);
 
-        // The attacking player's block in [row][col] is affected
-        attackingBoard->getGrid()[row][col] = -1; // Mark the cell to indicate it's been hit
-        qDebug() << "Player" << attackingPlayer << "hit a mine at (" << row << "," << col << ") and affected their own board.";
-
-        // Print the attacking board for debugging
-        qDebug() << "Attacking Player Board after hitting a mine:";
-        for (const auto& rowVec : attackingBoard->getGrid()) {
-            QString rowString;
-            for (int cell : rowVec) {
-                rowString += QString::number(cell) + " ";
-            }
-            qDebug() << rowString;
-        }
-
+    if (globalIsHost) {
+        enemyBoard->grid = stdBoard;
     } else {
-        // Handle regular attack logic
-        if (cellValue > 0) {
-            // Hit a ship
-            defendingBoard->getGrid()[row][col] = -1; // Mark the cell as hit
-            qDebug() << "Player" << attackingPlayer << "hit a ship at (" << row << "," << col << ").";
-
-            // Add logic for checking if the ship is sunk, game over, etc.
-        } else {
-            // Missed attack
-            defendingBoard->getGrid()[row][col] = -1; // Mark the cell as miss
-            qDebug() << "Player" << attackingPlayer << "missed at (" << row << "," << col << ").";
-        }
+        myBoard->grid = stdBoard;
     }
-
-    // Add any additional logic for updating UI, switching turns, etc.
 }
-
 
 void GameWindow::showPlayingWindow() {
     if (playingWindow) {
@@ -915,7 +1119,6 @@ void GameWindow::resetGame() {
     shipBlockCoordinates.clear();
     qDebug() << "Game reset.";
 }
-
 
 
 
