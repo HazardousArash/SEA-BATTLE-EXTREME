@@ -3,6 +3,7 @@
 #include "statsmenu.h"
 #include "mainwindow.h"
 #include "storycharecters.h"
+#include "onlinemenu.h"
 
 playerMenu::playerMenu(QString userNAme,QWidget *parent)
     : QMainWindow(parent)
@@ -34,6 +35,14 @@ void playerMenu::on_pushButton_clicked()
 void playerMenu::on_chPb_clicked()
 {
     storyCharecters *newPage=new storyCharecters(userName);
+    this->close();
+    newPage->show();
+}
+
+
+void playerMenu::on_onlinePB_clicked()
+{
+    onlineMenu *newPage=new onlineMenu(userName);
     this->close();
     newPage->show();
 }

@@ -101,6 +101,23 @@ void updateWinLoseDB(QString userName,int oil,bool isWin){
 
     }
 }
+void extractctOilDB(QString userNAme){
+    QSqlQuery query;
+    query.prepare("SELECT * FROM users WHERE username = :username");
+    query.bindValue(":username", userNAme);
+    if(query.exec()){
+        if(query.next()){
+            QString oil= query.value(16).toString();
+            qDebug()<<"success";
+        }
+        else{
+            qDebug() << "error finding user"<<query.lastError().text();
+        }
+    }
+    else{
+        qDebug()<<query.lastError().text();
+    }
+}
 statsMenu::statsMenu(QString userNAme,QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::statsMenu)

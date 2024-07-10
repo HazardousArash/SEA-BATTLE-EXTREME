@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>onlineMenu</class>
+ <widget class="QMainWindow" name="onlineMenu">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>-10</x>
+      <y>0</y>
+      <width>811</width>
+      <height>611</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/photos/background.jpg);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="newRc.qrc">:/photos/background.jpg</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="hostPB">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>260</y>
+      <width>231</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 16pt &quot;Segoe UI&quot;;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Create game</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="clientPB">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>260</y>
+      <width>261</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 16pt &quot;Segoe UI&quot;;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Connect to host</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>160</y>
+      <width>291</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+
+font: 16pt &quot;Segoe UI&quot;;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Choose one </string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>510</y>
+      <width>191</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:rgb(0, 0, 0);
+background-color:rgb(255, 255, 255);
+font: 16pt &quot;Segoe UI&quot;;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px; 
+    border-color: black;
+    padding: 4px;</string>
+    </property>
+    <property name="text">
+     <string>Back</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources>
+  <include location="newRc.qrc"/>
+ </resources>
+ <connections/>
+</ui>

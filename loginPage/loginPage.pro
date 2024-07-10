@@ -9,9 +9,12 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    clientmenu.cpp \
     forgetpassword.cpp \
+    hostmenu.cpp \
     main.cpp \
     mainwindow.cpp \
+    onlinemenu.cpp \
     playermenu.cpp \
     singu.cpp \
     statsmenu.cpp \
@@ -19,19 +22,26 @@ SOURCES += \
 
 
 HEADERS += \
+    clientmenu.h \
     forgetpassword.h \
+    hostmenu.h \
     mainwindow.h \
+    onlinemenu.h \
     playermenu.h \
     singu.h \
     statsmenu.h \
     storycharecters.h
 
 QT += sql
+QT += core network
 
 
 FORMS += \
+    clientmenu.ui \
     forgetpassword.ui \
+    hostmenu.ui \
     mainwindow.ui \
+    onlinemenu.ui \
     playermenu.ui \
     singu.ui \
     statsmenu.ui \

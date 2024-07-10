@@ -23,6 +23,8 @@ private slots:
 
     void on_chPb_clicked();
 
+    void on_onlinePB_clicked();
+
 private:
     Ui::playerMenu *ui;
 };
