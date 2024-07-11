@@ -1,7 +1,7 @@
 QT       += core gui
-QT += sql
-
-
+QT       += sql
+QT       +=core network
+QT += core multimedia
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
@@ -21,24 +21,31 @@ SOURCES += \
     arsenalshield.cpp \
     board.cpp \
     clickablelabel.cpp \
+    clientProject.cpp \
+    clientmenu.cpp \
     computerplayer.cpp \
     draggablebutton.cpp \
     forgetpassword.cpp \
     gamewindow.cpp \
     globalVariables.cpp \
+    hostmenu.cpp \
     humanplayer.cpp \
     login.cpp \
     main.cpp \
     mainwindow.cpp \
+    musicplayer.cpp \
+    onlinemenu.cpp \
     player.cpp \
     playermenu.cpp \
     playingwindow.cpp \
     releasablelabel.cpp \
+    serverproject.cpp \
     ship.cpp \
     singu.cpp \
     statsmenu.cpp \
     storycharecters.cpp \
-    thememanager.cpp
+    thememanager.cpp \
+    waitingwindow.cpp
 
 HEADERS += \
     ArsenalWindow.h \
@@ -51,31 +58,44 @@ HEADERS += \
     arsenalshield.h \
     board.h \
     clickablelabel.h \
+    clientProject.h \
+    clientmenu.h \
     computerplayer.h \
     draggablebutton.h \
     forgetpassword.h \
     gamewindow.h \
     globalVariables.h \
+    hostmenu.h \
     humanplayer.h \
     login.h \
     mainwindow.h \
+    musicplayer.h \
+    onlinemenu.h \
     player.h \
     playermenu.h \
     playingwindow.h \
     releasablelabel.h \
+    serverproject.h \
     ship.h \
     singu.h \
     statsmenu.h \
     storycharecters.h \
-    thememanager.h
+    thememanager.h \
+    waitingwindow.h
 
 FORMS += \
     ArsenalWindow.ui \
+    WaitingWindow.ui \
+    clientProject.ui \
+    clientmenu.ui \
     forgetpassword.ui \
     gamewindow.ui \
+    hostmenu.ui \
     mainwindow.ui \
+    onlinemenu.ui \
     playermenu.ui \
     playingwindow.ui \
+    serverproject.ui \
     singu.ui \
     statsmenu.ui \
     storycharecters.ui
@@ -88,5 +108,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
     fonts.qrc \
     icons.qrc \
+    music.qrc \
     photos.qrc
 

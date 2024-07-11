@@ -6,22 +6,45 @@
 #include "GameWindow.h"
 #include <QInputDialog>
 #include <QFormLayout>
-
+#include "waitingwindow.h"
 class GameWindow;
 
 ArsenalWindow::ArsenalWindow(GameWindow* gameWindow, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ArsenalWindow),
     themeManager(), // Ensure ThemeManager is properly initialized
-    gameWindow(gameWindow) // Initialize gameWindow reference
+    gameWindow(gameWindow),
+    waitingWindow(nullptr) // Initialize waitingWindow to nullptr
 {
     ui->setupUi(this);
     setupBackground(); // Setup background first
     setupButton(); // Setup the button icon
     setupIcons(); // Setup arsenal icons
     setupCustomFont(); // Setup custom font
-    setupOilBar(); // Setup oil bar // Setup radar button
+    setupOilBar(); // Setup oil bar
+
+    // Only enable the start button and hide the waiting label if the board is received
+    connect(gameWindow, &GameWindow::boardReceivedSignal, this, [this]() {
+        if (modeChosen == 3) {
+            ui->startButton->setEnabled(true);
+            ui->waitingLabel->setVisible(false);
+
+            QVector<ArsenalItem> selectedArsenal = (currentPlayer == 1) ? playerOneArsenal : playerTwoArsenal;
+            int remainingOil = (currentPlayer == 1) ? playerOneOil : playerTwoOil;
+            emit arsenalSelectionComplete(currentPlayer, remainingOil, selectedArsenal);
+
+            if (waitingWindow) {
+                waitingWindow->close();
+                delete waitingWindow;
+                waitingWindow = nullptr;
+            }
+            this->close();
+        }
+    });
 }
+
+
+
 ArsenalWindow::~ArsenalWindow()
 {
     delete ui;
@@ -70,8 +93,8 @@ int ArsenalWindow::getOil() const {
 void ArsenalWindow::setupBackground() {
     QPixmap backgroundPixmap = QPixmap(themeManager.getIconPath("table")); // Get the "table" image from ThemeManager
     if (!backgroundPixmap.isNull()) {
-        ui->backgroundLabel->setPixmap(backgroundPixmap);
-        ui->backgroundLabel->setScaledContents(true);
+        ui->waitingLabel->setPixmap(backgroundPixmap);
+        ui->waitingLabel->setScaledContents(true);
         qDebug() << "Background image set successfully.";
     } else {
         qDebug() << "Failed to load background image!";
@@ -289,6 +312,62 @@ void ArsenalWindow::setupCustomFont() {
 
 void ArsenalWindow::onStartButtonClicked() {
     qDebug() << "Next button in ArsenalWindow clicked";
+    if (isOnline==true) {
+        // In online mode, send the board to the other player
+        QVector<ArsenalItem> selectedArsenal = (currentPlayer == 1) ? playerOneArsenal : playerTwoArsenal;
+        int remainingOil = (currentPlayer == 1) ? playerOneOil : playerTwoOil;
+        qDebug()<<"entered if statement";
+        // Send the board to the other player
+        if (globalIsHost) {
+            qDebug()<<"trying to send the board to client...";
+            gameWindow->sendBoardToClient();
+        } else {
+            qDebug()<<"trying to send the board to server...";
+            gameWindow->sendBoardToServer();
+        }
+
+        // Disable the start button and show a waiting message
+        ui->startButton->setEnabled(false);
+        ui->waitingLabel->setText("Waiting for the other player to finish setting up...");
+        ui->waitingLabel->setVisible(true);
+
+        // Create and show the waiting window
+        if (!waitingWindow) {
+            waitingWindow = new WaitingWindow();
+        }
+        waitingWindow->show();
+        waitingWindow->setWindowFlags(Qt::Window);
+        waitingWindow->setWindowModality(Qt::NonModal);
+        waitingWindow->raise();
+        waitingWindow->activateWindow();
+        qDebug() << "waiting window opened!";
+
+        // Only emit arsenalSelectionComplete if the board is received
+        connect(gameWindow, &GameWindow::boardReceivedSignal, this, [this, selectedArsenal, remainingOil]() {
+            emit arsenalSelectionComplete(currentPlayer, remainingOil, selectedArsenal);
+            if (waitingWindow) {
+                qDebug() << "waiting window closed!";
+                waitingWindow->close();
+            }
+            this->close();
+        });
+
+    } else {
+        // For local modes, proceed as usual
+        QVector<ArsenalItem> selectedArsenal = (currentPlayer == 1) ? playerOneArsenal : playerTwoArsenal;
+        int remainingOil = (currentPlayer == 1) ? playerOneOil : playerTwoOil;
+
+        // Emit the signal with the player number, remaining oil, and selected arsenal items
+        emit arsenalSelectionComplete(currentPlayer, remainingOil, selectedArsenal);
+
+        // Close the ArsenalWindow
+        this->close();
+    }
+}
+
+
+
+void ArsenalWindow::onBoardReceived() {
     QVector<ArsenalItem> selectedArsenal = (currentPlayer == 1) ? playerOneArsenal : playerTwoArsenal;
     int remainingOil = (currentPlayer == 1) ? playerOneOil : playerTwoOil;
 
@@ -358,11 +437,8 @@ void ArsenalWindow::showMineCoordinateDialog(ArsenalItem& item) {
 
             // Check if the coordinates are within bounds and the cell is empty
             if (row >= 0 && row < playerBoard->getGrid().size() && col >= 0 && col < playerBoard->getGrid()[0].size() && playerBoard->getGrid()[row][col] == 0) {
-                playerBoard->getGrid()[row][col] = -101;
+                playerBoard->getGrid()[row][col] = 101;
                 qDebug() << "Mine placed at (" << row << "," << col << ") on player" << currentPlayer << "board.";
-
-                // Store the coordinates in humanBombs
-                gameWindow->humanBombs.append(qMakePair(row, col));
 
                 // Print the board for debugging
                 qDebug() << "Current Board State:";
@@ -380,6 +456,7 @@ void ArsenalWindow::showMineCoordinateDialog(ArsenalItem& item) {
         }
     }
 }
+
 
 bool ArsenalWindow::validateMineCoordinate(int row, int col) {
     Board* playerBoard = currentPlayer == 1 ? &player1Board : &player2Board;

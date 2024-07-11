@@ -1,6 +1,6 @@
 #include "GlobalVariables.h"
 
-int modeChosen =2; // Default to 1vs1 mode
+int modeChosen =3; // Default to 1vs1 mode
 Board player1Board(10);
 Board player2Board(10);
 int playerOneOil;
@@ -18,3 +18,11 @@ int humanRadarCounts = 0;
  int playerOneNumberOfMissiles=0;
  int playerTwoNumberOfMissiles=0;
  QString globalUserName=nullptr;
+ std::vector<std::vector<int>> playerOneBoard(10, std::vector<int>(10, 0));
+ std::vector<std::vector<int>> playerTwoBoard(10, std::vector<int>(10, 0));
+ QTcpServer* server = nullptr;
+ QTcpSocket* serverSocket=nullptr;
+ QTcpSocket* clientSocket = nullptr;
+ QString globalHostAddress;
+ bool globalIsHost = false;
+ bool isOnline=true;

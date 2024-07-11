@@ -19,6 +19,52 @@
 #include <algorithm>
 #include "board.h"
 #include "playermenu.h"
+#include <vector>
+int updateOilBaseOnVector(std::vector<std::vector<int>> inputVec)
+{
+    int outputOil = 0;
+    for (int i = 0; i < 10; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            switch (inputVec[i][j])
+            {
+            case 10:
+                outputOil += 20;
+                break;
+            case 9:
+                outputOil += 15;
+                break;
+            case 8:
+                outputOil += 15;
+                break;
+            case 7:
+                outputOil += 10;
+                break;
+            case 6:
+                outputOil += 10;
+                break;
+            case 5:
+                outputOil += 10;
+                break;
+            case 4:
+                outputOil += 5;
+                break;
+            case 3:
+                outputOil += 5;
+                break;
+            case 2:
+                outputOil += 5;
+                break;
+            case 1:
+                outputOil += 5;
+                break;
+            }
+        }
+    }
+    return outputOil;
+}
+
 PlayingWindow::PlayingWindow(QWidget *parent, GameWindow *gameWindow, Board* myBoard, Board* enemyBoard, ThemeManager* themeManager)
     : QWidget(parent),
     ui(new Ui::PlayingWindow),
@@ -208,6 +254,8 @@ void PlayingWindow::showLoseWindow() {
     layout->addWidget(message);
     if(modeChosen==1)
     {
+        updateOilBaseOnVector(myBoard->grid);
+
         updateWinLoseDB(globalUserName,playerOneOil,false);
     }
     QPushButton* closeButton = new QPushButton("Close", loseWindow);
@@ -249,8 +297,8 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
                 maxY = std::max(maxY, point.y());
             }
 
-            if ((modeChosen == 1 && boardName == "enemyBoard") || modeChosen == 2 || (modeChosen == 1 && boardName == "myBoard")) {
-                continue; // Skip displaying ship icons for enemyBoard in mode 1, both boards in mode 2, and myBoard in mode 1
+            if ((modeChosen == 1 && boardName == "enemyBoard") || modeChosen == 2 || modeChosen == 3 || (modeChosen == 1 && boardName == "myBoard")) {
+                continue; // Skip displaying ship icons for enemyBoard in mode 1, both boards in mode 2 and mode 3, and myBoard in mode 1
             }
 
             QString shipIconName;
@@ -332,7 +380,7 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
                     cell->setStyleSheet("border: none; background: rgba(255, 0, 0, 0.5);"); // Glassy red
                 } else if (cellValue > 0) {
                     // Ships with no hit
-                    if (modeChosen == 1 && boardName == "myBoard") {
+                    if ((modeChosen == 1 || modeChosen == 3) && boardName == "myBoard") {
                         cell->setStyleSheet("border: 2px solid red; background: transparent;");
                     } else if (modeChosen == 2) {
                         cell->setPixmap(QPixmap());
@@ -346,8 +394,8 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
         }
     }
 
-    // Hide ships and remove borders for enemyBoard in mode 1
-    if (modeChosen == 1 && boardName == "enemyBoard") {
+    // Hide ships and remove borders for enemyBoard in mode 1 and mode 3
+    if ((modeChosen == 1 || modeChosen == 3) && boardName == "enemyBoard") {
         for (int j = 0; j < gridSize; ++j) {
             for (int i = 0; i < gridSize; ++i) {
                 ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(j).arg(i));
@@ -359,8 +407,8 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
         }
     }
 
-    // Hide ship pixmaps for myBoard in mode 1 but keep red borders
-    if (modeChosen == 1 && boardName == "myBoard") {
+    // Hide ship pixmaps for myBoard in mode 1 and mode 3 but keep red borders
+    if ((modeChosen == 1 || modeChosen == 3) && boardName == "myBoard") {
         for (int j = 0; j < gridSize; ++j) {
             for (int i = 0; i < gridSize; ++i) {
                 int cellValue = grid[j][i];
@@ -372,8 +420,6 @@ void PlayingWindow::updateGridWithBoardState(Board* board, const QString& boardN
         }
     }
 }
-
-
 
 
 void PlayingWindow::clearShipBlockCrosses(int shipID) {
@@ -407,9 +453,10 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
         qDebug() << "Player 2 clicked on myBoard at (" << row << ", " << col << ")";
 
         // Check if player 2 hits a shielded row
-        if (gameWindow->playerTwoShieldedRows.first == row || gameWindow->playerTwoShieldedRows.second == row) {
+        if (gameWindow->playerOneShieldedRows.first == row || gameWindow->playerOneShieldedRows.second == row) {
             QMessageBox::information(this, "Shield activated!", "Shield activated! Player 2's turn is over.");
-            gameWindow->playerTwoShieldedRows = qMakePair(-1, -1); // Shield expires after first hit
+            gameWindow->playerOneShieldedRows = qMakePair(-1, -1); // Shield expires after first hit
+            playerOneOil+=20;
             player1Turn = true;
             player2Turn = false;
             return;
@@ -429,14 +476,14 @@ void PlayingWindow::onBoardBlockClicked(int row, int col) {
             qDebug() << "Player 2 missed. Switching to player 1's turn.";
             player1Turn = true;
             player2Turn = false;
-        } else if (cellValue == -101) {
-            QMessageBox::information(this, "Don't hit yourself!", "Don't hit yourself!");
-
+        } else if (cellValue == 101) {
+            QMessageBox::information(this, "Missssssed!", "Don't hit yourself!");
+            playerOneOil+=25;
             if (enemyBoard->getGrid()[row][col] > 0 && enemyBoard->getGrid()[row][col] <= 10) {
                 enemyBoard->getGrid()[row][col] *= -1;
                 ClickableLabel* cell = findChild<ClickableLabel*>(QString("cell_enemy_%1_%2").arg(row).arg(col));
                 if (cell) {
-                    cell->setStyleSheet("background: rgba(255, 0, 0, 1); border: 1px solid gray;"); // Solid red
+                    cell->setStyleSheet("background: rgba(255, 0, 0,0.5); border: 1px solid gray;"); // Solid red
                 }
                 qDebug() << "Player 2 hit a mine at (" << row << ", " << col << ") and affected their own ship.";
             } else {
@@ -596,7 +643,7 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             player1Turn = false;
             player2Turn = true;
             QTimer::singleShot(1000, gameWindow, &GameWindow::triggerBotTurn); // Call bot's turn
-        } else if (cellValue == -101) {
+        } else if (cellValue == 101) {
             QMessageBox::information(this, "Don't hit yourself!", "Don't hit yourself!");
 
             if (myBoard->getGrid()[row][col] > 0 && myBoard->getGrid()[row][col] <= 10) {
@@ -642,6 +689,7 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
                 QMessageBox::information(this, "Game Over", "Player 1 wins!");
                 if(modeChosen==1)
                 {
+                    updateOilBaseOnVector(myBoard->grid);
                     updateWinLoseDB(globalUserName,playerOneOil,true);
                 }
                 return;
@@ -677,8 +725,8 @@ void PlayingWindow::onEnemyBoardBlockClicked(int row, int col) {
             qDebug() << "Player 1 missed. Switching to player 2's turn.";
             player1Turn = false;
             player2Turn = true;
-        } else if (cellValue == -101) {
-            QMessageBox::information(this, "Don't hit yourself!", "Don't hit yourself!");
+        } else if (cellValue == 101) {
+            QMessageBox::information(this, "Missssed!", "Don't hit yourself!");
 
             if (myBoard->getGrid()[row][col] > 0 && myBoard->getGrid()[row][col] <= 10) {
                 myBoard->getGrid()[row][col] *= -1;
@@ -789,6 +837,7 @@ void PlayingWindow::onRadarButtonClicked() {
                                 QMessageBox::information(this, "Radar Result", QString("Ship found at (%1, %2)").arg(i).arg(j));
                                 shipFound = true;
                                 break;
+                                playerOneOil+=5;
                             }
                         }
                     }
@@ -927,6 +976,7 @@ void PlayingWindow::onGunButtonClicked() {
                 QMessageBox::information(this, "Gun Shot", QString("Ship found and hit at (%1, %2)").arg(row).arg(col));
                 shipFound = true;
                 currentPlayerGuns--; // Decrement the gun count
+                playerOneOil+=10;
                 break;
             }
         }
@@ -1074,6 +1124,7 @@ void PlayingWindow::onMissileButtonClicked() {
             if (cell) {
                 cell->setStyleSheet("background: black; border: 1px solid gray;");
                 cell->setEnabled(false);
+                playerOneOil+=10;
             }
         }
     }
@@ -1095,6 +1146,5 @@ void PlayingWindow::onMissileButtonClicked() {
         player2Turn = !player2Turn;
     }
 }
-
 
 

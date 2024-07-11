@@ -7,6 +7,7 @@
 #include "Game.h"
 #include <QSqlQuery>
 #include <QSqlError>
+#include "onlinemenu.h"
 void extractctOilDB(){
     QSqlQuery query;
     query.prepare("SELECT * FROM users WHERE username = :username");
@@ -14,7 +15,7 @@ void extractctOilDB(){
     if(query.exec()){
         if(query.next()){
             qDebug()<<query.value(16).toInt();
-         playerOneOil= query.value(16).toInt();
+            playerOneOil= query.value(16).toInt();
             qDebug()<<playerOneOil;
 
             playerOneOil+=30;
@@ -31,18 +32,24 @@ void extractctOilDB(){
         qDebug()<<query.lastError().text();
     }
 }
-playerMenu::playerMenu(QString userNAme,QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::playerMenu)
+#include "playerMenu.h"
+#include "ui_playerMenu.h"
+
+playerMenu::playerMenu(QString userName, QWidget *parent)
+    : QMainWindow(parent),
+    ui(new Ui::playerMenu),
+    musicPlayer(new MusicPlayer(this))  // Initialize the music player
 {
-    this->userName=userNAme;
+    this->userName = userName;
     ui->setupUi(this);
+    musicPlayer->playMusic(":/theme1.mp3");  // Use the music player to play music
 }
 
 playerMenu::~playerMenu()
 {
     delete ui;
 }
+
 
 void playerMenu::on_statsPB_clicked()
 {
@@ -84,5 +91,18 @@ void playerMenu::on_CoPB_clicked()
     this->close();
     modeChosen=2;
     runGame();
+}
+
+
+
+void playerMenu::on_onlinePB_clicked()
+{
+
+    globalUserName=userName;
+    extractctOilDB();
+    this->close();
+    modeChosen=3;
+    onlineMenu* menu=new onlineMenu(globalUserName);
+    menu->show();
 }
 

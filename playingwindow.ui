@@ -62,7 +62,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>PushButton</string>
+    <string>Radar</string>
    </property>
   </widget>
   <widget class="QPushButton" name="gunButton">
@@ -75,7 +75,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>PushButton</string>
+    <string>Gun</string>
    </property>
   </widget>
   <widget class="QPushButton" name="missileButton">
@@ -88,7 +88,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>PushButton</string>
+    <string>Missile</string>
    </property>
   </widget>
   <zorder>waterBackground</zorder>

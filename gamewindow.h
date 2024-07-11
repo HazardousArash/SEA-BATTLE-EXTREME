@@ -14,6 +14,10 @@
 #include <QVector>
 #include "ArsenalItem.h"
 #include <QPair>
+#include "serverproject.h"
+#include "clientProject.h"
+#include "waitingwindow.h"
+//WaitingWindow* waitingWindow2 = nullptr;
 class PlayingWindow;
 class ArsenalWindow;
 namespace Ui {
@@ -53,11 +57,16 @@ public:
     QVector<ArsenalItem> playerOneArsenal;
     QVector<ArsenalItem> playerTwoArsenal;
     void handleArsenalSelectionComplete(int player, int remainingOil, const QVector<ArsenalItem>& selectedArsenal);
-    ArsenalWindow *arsenalWindow;
+    ArsenalWindow *arsenalWindow=nullptr;
     void processAttack(int row, int col, Board* attackingBoard, Board* defendingBoard, int attackingPlayer);
     QVector<QPair<int, int>> humanBombs;
     QPair<int, int> playerOneShieldedRows;
     QPair<int, int> playerTwoShieldedRows;
+    void startOnlineGame();
+    void sendBoardToServer();
+    void sendBoardToClient();
+    bool boardReceived=false;
+    WaitingWindow *waitingWindow = nullptr;
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
@@ -79,16 +88,32 @@ private:
     DraggableButton* currentShipButton = nullptr;
     std::vector<QPoint> shipBlockCoordinates;
     void showPlayingWindow();
-     bool isSecondPlayerSettingUp;
+    bool isSecondPlayerSettingUp;
+    bool isHost;
+    void receiveBoardFromServer();
+    void receiveBoardFromClient();
 private slots:
     void onNextButtonClicked();
     void switchToTheme1();
     void switchToTheme2();
-     void onArsenalSelectionComplete(int player, int oil, const QVector<ArsenalItem>& arsenal);
+    void onArsenalSelectionComplete(int player, int oil, const QVector<ArsenalItem>& arsenal);
     void onBackButtonClicked();
+    void onConnected();
+    void onReadyRead();
+    void onDisconnected();
+    void onSendData();
+    void onReceiveData();
+    void sendBoards();
+    void processReceivedData(const QByteArray& data);
+    void onBoardReceived();
+     void onBothBoardsReceived();
+    void handleArsenalSelectionCompleteForHost(int player, int oil, const QVector<ArsenalItem>& arsenal);
+    void handleArsenalSelectionCompleteForClient(int player, int oil, const QVector<ArsenalItem>& arsenal);
+    void handleBoardReceivedSignalForHost();
+    void handleBoardReceivedSignalForClient();
 signals:
     void secondPlayerSetupComplete();
-
+     void boardReceivedSignal();
 };
 
 #endif // GAMEWINDOW_H

@@ -117,7 +117,9 @@ Board::Board(int size) : size(size) {
 
 Board::Board(const Board& other) : size(other.size), grid(other.grid) { // Copy constructor
 }
-
+Board::Board(const std::vector<std::vector<int>>& grid) : grid(grid) {
+    // Initialize the grid with the provided values
+}
 
 std::vector<std::vector<int>>& Board::getGrid() {
     return grid;  // Return the grid
@@ -125,14 +127,13 @@ std::vector<std::vector<int>>& Board::getGrid() {
 bool Board::allShipsSunken() const {
     for (const auto& row : grid) {
         for (int cell : row) {
-            if (cell > 0) {
+            if (cell > 0 && cell <= 10) { // Check only ship parts, ignore mines (cell value 101)
                 return false; // There is at least one ship part that is not sunken
             }
         }
     }
     return true;
 }
-
 
 bool Board::canPlaceShip(const Ship& ship, int startX, int startY) {
     int length = ship.getLength();

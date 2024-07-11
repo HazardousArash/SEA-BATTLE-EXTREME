@@ -2,7 +2,7 @@
 #define PLAYERMENU_H
 
 #include <QMainWindow>
-
+#include "musicplayer.h"
 namespace Ui {
 class playerMenu;
 }
@@ -27,8 +27,11 @@ private slots:
 
     void on_CoPB_clicked();
 
+    void on_onlinePB_clicked();
+
 private:
     Ui::playerMenu *ui;
+     MusicPlayer *musicPlayer;
 };
 
 #endif // PLAYERMENU_H

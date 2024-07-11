@@ -5,6 +5,9 @@
 #include <QPoint>
 #include <QPair>
 #include <QString>
+#include <QTcpSocket>
+#include <QTcpServer>
+#include "globalVariables.h"
 extern int modeChosen;
 extern Board player1Board;
 extern Board player2Board;
@@ -23,4 +26,12 @@ extern int playerTwoNumberOfGuns;
 extern int playerOneNumberOfMissiles;
 extern int playerTwoNumberOfMissiles;
 extern QString globalUserName;
+extern QTcpServer* server;
+extern QTcpSocket* serverSocket;
+extern QTcpSocket* clientSocket;
+extern QString globalHostAddress;
+extern bool globalIsHost;
+extern std::vector<std::vector<int>> playerOneBoard;
+extern std::vector<std::vector<int>> playerTwoBoard;
+extern bool isOnline;
 #endif // GLOBALS_H

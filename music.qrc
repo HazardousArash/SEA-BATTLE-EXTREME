@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>theme1.mp3</file>
+    </qresource>
+</RCC>

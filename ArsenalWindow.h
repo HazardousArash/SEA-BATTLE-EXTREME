@@ -17,6 +17,7 @@
 #include "ArsenalItem.h"
 #include "globalVariables.h"
 #include "playingwindow.h"
+#include "WaitingWindow.h"
 class GameWindow;
 
 namespace Ui {
@@ -37,7 +38,7 @@ public:
     int getOil() const;
     void resetArsenal();
     void showShieldCoordinateDialog();
-
+    WaitingWindow *waitingWindow;
 private:
     Ui::ArsenalWindow *ui;
     ThemeManager themeManager;
@@ -60,8 +61,11 @@ private:
     void setupRadarButton() ;
 private slots:
     void onStartButtonClicked();
+    void onBoardReceived();
 signals:
     void arsenalSelectionComplete(int player, int oil, const QVector<ArsenalItem>& arsenal);
+    void sendBoardToClient();
+    void sendBoardToServer();
 };
 
 #endif // ARSENALWINDOW_H
