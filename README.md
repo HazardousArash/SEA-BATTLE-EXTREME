@@ -5,7 +5,7 @@ Important  Note!
 1-Your user name should start with an English letter and can not end with a dot or underline and you can only use English letters or numbers or dot and underline for creating the username and there can not be two dots or underline Continuously.
 2-The password must be between 6 and 20 characters long and include at least one lowercase letter, one uppercase letter, one number, and one special character (!@#$%^&*()-+=). Additionally, the password cannot contain three consecutive identical characters.
 3- first name and last name should only contain English letters and last name can have at least one hyphen.
-4-email has to be like this pattern " <anything>@<domain>.com " .
+4-email has to be like this pattern " anything @domain.com " .
 5- The security key is for when you forget your password and need to change it and it also follows the rules as passwords.
   
 -The online part won't work because of some bugs please don't use it or you may encounter them.
